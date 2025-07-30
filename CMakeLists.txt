@@ -10,6 +10,7 @@ FetchContent_Declare(
         GIT_TAG        v0.8.3
 )
 
+FetchContent_MakeAvailable(xxhash)
 add_library(FluentSTL INTERFACE)
 add_library(fluent::stl ALIAS FluentSTL)
 
