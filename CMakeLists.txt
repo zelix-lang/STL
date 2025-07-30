@@ -3,12 +3,10 @@ project(FluentSTL)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_library(
-        FluentSTL STATIC
-        library.cpp
-        include/fluent/container/external_string.h
-        include/fluent/container/owned_string.h
-        include/fluent/container/vector.h
-        include/fluent/except/exception.h
-)
-target_include_directories(FluentSTL PRIVATE include)
+add_library(FluentSTL INTERFACE)
+
+target_include_directories(
+        FluentSTL
+        INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
