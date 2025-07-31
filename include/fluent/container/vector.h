@@ -31,7 +31,6 @@
 #include "optional.h"
 #include "move.h"
 #include "fluent/except/exception.h"
-#include <stdexcept>
 
 namespace fluent::container
 {
