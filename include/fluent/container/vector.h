@@ -28,7 +28,9 @@
 //
 
 #pragma once
-#include <optional>
+#include "optional.h"
+#include "move.h"
+#include "fluent/except/exception.h"
 #include <stdexcept>
 
 namespace fluent::container
@@ -55,11 +57,11 @@ namespace fluent::container
          * @brief Initializes heap memory for the vector.
          *
          * Allocates memory for the vector on the heap and copies existing elements from the stack if necessary.
-         * Throws std::bad_alloc if memory allocation fails.
+         * Throws except::exception if memory allocation fails.
          */
         void init()
         {
-            // Throws std::bad_alloc if memory allocation fails
+            // Throws except::exception if memory allocation fails
             data = new T[capacity];
 
             if (len > 0)
@@ -76,7 +78,7 @@ namespace fluent::container
          * @brief Reallocates heap memory with the current capacity.
          *
          * Moves existing elements to a new heap-allocated array and updates the data pointer.
-         * Throws std::bad_alloc if memory allocation fails.
+         * Throws except::exception if memory allocation fails.
          */
         void realloc_()
         {
@@ -84,13 +86,13 @@ namespace fluent::container
             T *new_data = new T[capacity]; // Assume capacity is already set
             if (!new_data)
             {
-                throw std::bad_alloc(); // Memory allocation failed
+                throw except::exception("Bad alloc"); // Memory allocation failed
             }
 
             // Copy existing elements to the new array
             for (size_t i = 0; i < len; ++i)
             {
-                new_data[i] = std::move(data[i]); // Move elements to the new array
+                new_data[i] = move(data[i]); // Move elements to the new array
             }
 
             delete[] data;
@@ -111,7 +113,7 @@ namespace fluent::container
         /**
          * @brief Sets the value at the specified index in stack memory.
          *
-         * Throws std::out_of_range if the index is out of bounds.
+         * Throws except::exception if the index is out of bounds.
          *
          * @param idx Index to set.
          * @param value Value to assign.
@@ -120,7 +122,7 @@ namespace fluent::container
         {
             if (idx >= 100)
             {
-                throw std::out_of_range("Index out of bounds for stack-allocated array");
+                throw except::exception("Index out of bounds for stack-allocated array");
             }
 
             stack[idx] = value;
@@ -141,7 +143,7 @@ namespace fluent::container
          * @brief Constructs a vector with a specified capacity.
          *
          * Allocates heap memory if capacity is specified.
-         * Throws std::invalid_argument if capacity is zero.
+         * Throws except::exception if capacity is zero.
          *
          * @param capacity Initial capacity.
          */
@@ -149,7 +151,7 @@ namespace fluent::container
         {
             if (capacity == 0)
             {
-                throw std::invalid_argument("Capacity must be greater than zero");
+                throw except::exception("Capacity must be greater than zero");
             }
 
             this->capacity = capacity;
@@ -168,7 +170,7 @@ namespace fluent::container
          * @brief Constructs a vector with a specified capacity and growth factor.
          *
          * Allocates heap memory and sets the growth factor.
-         * Throws std::invalid_argument if capacity is zero or growth factor is invalid.
+         * Throws except::exception if capacity is zero or growth factor is invalid.
          *
          * @param capacity Initial capacity.
          * @param growth_factor Growth factor for resizing.
@@ -177,17 +179,17 @@ namespace fluent::container
         {
             if (capacity == 0)
             {
-                throw std::invalid_argument("Capacity must be greater than zero");
+                throw except::exception("Capacity must be greater than zero");
             }
 
             if (growth_factor <= 1)
             {
-                throw std::invalid_argument("Growth factor must be greater than 1");
+                throw except::exception("Growth factor must be greater than 1");
             }
 
             if (growth_factor > 10)
             {
-                throw std::invalid_argument("Growth factor must not exceed 10");
+                throw except::exception("Growth factor must not exceed 10");
             }
 
             this->growth_factor = growth_factor;
@@ -292,7 +294,7 @@ namespace fluent::container
         {
             if (stack_mem)
             {
-                new (&stack[len]) T(std::forward<Args>(args)...);
+                new (&stack[len]) T(forward<Args>(args)...);
                 len++;
 
                 if (len >= 100)
@@ -319,21 +321,21 @@ namespace fluent::container
             }
 
             // Construct the element in place at the end of the vector
-            new (&data[len]) T(std::forward<Args>(args)...);
+            new (&data[len]) T(forward<Args>(args)...);
             len++;
         }
 
         /**
          * @brief Returns the last element in the vector, if any.
          *
-         * @return std::optional<T> Last element or std::nullopt if empty.
+         * @return optional<T> Last element or nullopt if empty.
          */
-        std::optional<T> back()
+        optional<T> back()
         {
             // Make sure the length is greater than 0
             if (len == 0)
             {
-                return std::nullopt; // No elements in the vector
+                return optional<T>::none(); // No elements in the vector
             }
 
             return data[len - 1]; // Return the last element
@@ -342,14 +344,14 @@ namespace fluent::container
         /**
          * @brief Removes the last element from the vector.
          *
-         * Throws std::out_of_range if the vector is empty.
+         * Throws except::exception if the vector is empty.
          */
         void pop_back()
         {
             // Make sure the length is greater than 0
             if (len == 0)
             {
-                throw std::out_of_range("Cannot pop from an empty vector");
+                throw except::exception("Cannot pop from an empty vector");
             }
 
             if (stack_mem)
@@ -425,14 +427,14 @@ namespace fluent::container
          * @brief Returns the element at the specified index, if within bounds.
          *
          * @param index Index to access.
-         * @return std::optional<T> Element or std::nullopt if out of bounds.
+         * @return optional<T> Element or nullopt if out of bounds.
          */
-        std::optional<T> at(const size_t index) const
+        optional<T> at(const size_t index) const
         {
             // Check if the index is within bounds
             if (index >= len)
             {
-                return std::nullopt; // Index out of bounds
+                return optional<T>::none(); // Index out of bounds
             }
 
             if (stack_mem)
@@ -446,7 +448,7 @@ namespace fluent::container
         /**
          * @brief Returns a reference to the element at the specified index.
          *
-         * Throws std::out_of_range if index is out of bounds.
+         * Throws except::exception if index is out of bounds.
          *
          * @param index Index to access.
          * @return T& Reference to element.
@@ -455,7 +457,7 @@ namespace fluent::container
         {
             if (index >= len)
             {
-                throw std::out_of_range("Index out of bounds");
+                throw except::exception("Index out of bounds");
             }
 
             if (stack_mem)
@@ -508,7 +510,7 @@ namespace fluent::container
                 // Move stack memory to this instance
                 for (size_t i = 0; i < other.len; i++)
                 {
-                    stack[i] = std::move(other.stack[i]); // Move elements from other stack to this stack
+                    stack[i] = move(other.stack[i]); // Move elements from other stack to this stack
                 }
             }
 
@@ -545,7 +547,7 @@ namespace fluent::container
                     // Copy stack memory from other
                     for (size_t i = 0; i < other.len; i++)
                     {
-                        stack[i] = std::move(other.stack[i]); // Move elements from other stack to this stack
+                        stack[i] = move(other.stack[i]); // Move elements from other stack to this stack
                     }
                 }
 
