@@ -39,8 +39,8 @@ namespace fluent::container
         size_t pos_ = 0; ///< Current position in the stream
 
     public:
-        explicit stream(vector<T> data) : data_(data)
-            {}
+        explicit stream(vector<T>& data) :
+            data_(container::move(data)) {}
 
         explicit stream(vector<T>&& data) :
             data_(container::move(data)) {}
