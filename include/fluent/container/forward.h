@@ -33,8 +33,13 @@
 namespace fluent::container
 {
     template <typename T>
-    constexpr T&& forward(remove_reference<T> & t) noexcept
-    {
+    constexpr T&& forward(remove_reference<T>& t) noexcept {
+        return static_cast<T&&>(t);
+    }
+
+    template <typename T>
+    constexpr T&& forward(remove_reference<T>&& t) noexcept {
+        static_assert(!is_lvalue_reference<T>::value, "bad forward");
         return static_cast<T&&>(t);
     }
 }
