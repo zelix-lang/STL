@@ -46,7 +46,7 @@ namespace fluent::container
             return optional(); // Return an empty optional
         }
 
-        static constexpr optional some(T &val) noexcept
+        static constexpr optional some(T val) noexcept
         {
             optional opt; // Create an optional instance
             new (opt.data_) T(val); // Construct the value in place
