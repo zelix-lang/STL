@@ -42,6 +42,9 @@ namespace fluent::container
         explicit stream(vector<T> data) : data_(data)
             {}
 
+        explicit stream(vector<T>&& data) :
+            data_(container::move(data)) {}
+
         void push(const T &value)
         {
             data_.push_back(value); ///< Add a new value to the stream
