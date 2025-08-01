@@ -17,7 +17,7 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(fluent_stl)
-target_link_libraries(Fluent PRIVATE FluentSTL)
+target_link_libraries(Fluent PRIVATE fluent::stl)
 ```
 
 ## License
