@@ -60,6 +60,16 @@ namespace fluent::container
             return optional<T>::some(data_[pos_]); ///< Return the next element without advancing
         }
 
+		optional<T> curr()
+        {
+            if (pos_ == 0 || pos_ > data_.size())
+            {
+                return optional<T>::none(); ///< Return nullopt if no current element
+            }
+
+            return optional<T>::some(data_[pos_ - 1]); ///< Return the current element
+        }
+
         optional<T> next()
         {
             if (pos_ >= data_.size())
