@@ -482,8 +482,7 @@ namespace fluent::container
 
             for (size_t i = 0; i < other.len; ++i)
             {
-                // Use placement new to construct the element in place
-                emplace_back(other[i]);
+                push_back(other[i]);
             }
         }
 
