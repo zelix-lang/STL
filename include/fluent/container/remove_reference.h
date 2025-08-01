@@ -31,14 +31,7 @@
 
 namespace fluent::container
 {
-#if _GLIBCXX_USE_BUILTIN_TRAIT(__remove_reference)
-    template<typename T>
-    struct remove_reference
-    {
-        using type = __remove_reference(T);
-    };
-#else
-    template<typename T>
+	template<typename T>
     struct remove_reference
     {
         using type = T;
@@ -55,5 +48,4 @@ namespace fluent::container
     {
         using type = T;
     };
-#endif
 }
