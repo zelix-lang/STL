@@ -58,7 +58,7 @@ namespace fluent::container
         static constexpr optional emplace(Args&&... args)
         {
             optional opt; // Create an optional instance
-            new (opt) T(forward<Args>(args)...); // Direct construction
+            new (opt.data_) T(forward<Args>(args)...); // Direct construction
             opt.has_value = true;
             return opt; // Return the optional with the value
         }
