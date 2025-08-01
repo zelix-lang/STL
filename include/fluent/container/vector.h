@@ -445,14 +445,29 @@ namespace fluent::container
         }
 
         /**
-         * @brief Returns a reference to the element at the specified index.
+         * @brief Returns the element at the specified index.
          *
          * Throws except::exception if index is out of bounds.
          *
          * @param index Index to access.
-         * @return T& Reference to element.
+         * @return T Element.
          */
-        T &operator[](const size_t index)
+        T operator[](const size_t index)
+        const {
+            if (index >= len)
+            {
+                throw except::exception("Index out of bounds");
+            }
+
+            if (stack_mem)
+            {
+                return stack[index]; // Return a reference to the element at the specified index
+            }
+
+            return data[index]; // Return a reference to the element at the specified index
+        }
+
+        T operator[](const size_t index)
         {
             if (index >= len)
             {
