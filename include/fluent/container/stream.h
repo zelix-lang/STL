@@ -79,5 +79,20 @@ namespace fluent::container
 
             return optional<T>::some(data_[pos_++]); ///< Return the next element and advance the position
         }
+
+		vector<T> &ptr()
+        {
+            return data_; ///< Return a reference to the underlying vector
+        }
+
+        void reset()
+        {
+            pos_ = 0; ///< Reset the position to the start of the stream
+        }
+
+        [[nodiscard]] size_t size() const
+        {
+            return data_.size(); ///< Return the size of the stream
+        }
     };
 }
