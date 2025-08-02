@@ -73,7 +73,7 @@ namespace fluent::container
             return !has_value; // Check if the optional is empty
         }
 
-        [[nodiscard]] T &get() noexcept
+        [[nodiscard]] T &get() noexcept(false)
         {
             if (!has_value)
             {
@@ -82,7 +82,7 @@ namespace fluent::container
             return *reinterpret_cast<T *>(data_); // Return the stored value
         }
 
-        [[nodiscard]] const T &get() const noexcept
+        [[nodiscard]] const T &get() const noexcept(false)
         {
             if (!has_value)
             {
