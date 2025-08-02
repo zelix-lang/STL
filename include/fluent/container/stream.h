@@ -95,6 +95,16 @@ namespace fluent::container
             return pos_; ///< Return the current position in the stream
         }
 
+        void set_pos(const size_t pos)
+        {
+            if (pos > data_.size())
+            {
+                throw except::exception("Position out of bounds"); ///< Throw an error if the position is invalid
+            }
+
+            pos_ = pos; ///< Set the current position in the stream
+        }
+
         [[nodiscard]] bool empty() const
         {
             return data_.empty(); ///< Check if the stream is empty
