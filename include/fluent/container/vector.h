@@ -482,6 +482,16 @@ namespace fluent::container
             return data[index]; // Return a reference to the element at the specified index
         }
 
+		T &ref_at(const size_t index) const
+        {
+            if (stack_mem)
+            {
+                return stack[index]; // Return the element at the specified index
+            }
+
+            return data[index]; // Return the element at the specified index
+        }
+
         /**
          * @brief Copy constructor.
          *
