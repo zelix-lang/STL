@@ -351,10 +351,14 @@ namespace fluent::container
          */
         void clear()
         {
-            for (size_t i = 0; i < size_; ++i)
+            if constexpr (!std::is_trivially_copyable_v<T>)
             {
-                data[i].~T();
+                for (size_t i = 0; i < size_; ++i)
+                {
+                    data[i].~T();
+                }
             }
+
             size_ = 0;
         }
 
