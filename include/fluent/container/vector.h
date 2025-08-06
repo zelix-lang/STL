@@ -520,6 +520,24 @@ namespace fluent::container
         }
 
         /**
+         * @brief Returns a reference to the element at the specified index.
+         *
+         * @param index The index of the element to access.
+         * @return T& Reference to the element at the given index.
+         * @throws except::exception If the index is out of range.
+         */
+        T &ref_at(const size_t index)
+        {
+            if (!initialized)
+                throw except::exception("Early access to vector");
+
+            if (index >= size_)
+                throw except::exception("Index out of range");
+
+            return data[index];
+        }
+
+        /**
          * @brief Returns a reference to the last element in the vector.
          * @return T& Reference to the last element.
          * @throws except::exception If the vector is empty.
