@@ -29,7 +29,7 @@
 
 #pragma once
 
-namespace fluent::container
+namespace zelix::container
 {
 	template<typename T>
     struct remove_reference

@@ -35,7 +35,7 @@
 #include <cstdlib>
 #include "fluent/except/exception.h"
 
-namespace fluent::container
+namespace zelix::container
 {
     /**
      * @brief A vector implementation that lazily initializes its elements.

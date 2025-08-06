@@ -30,7 +30,7 @@
 #pragma once
 #include <cstring>
 
-namespace fluent::container
+namespace zelix::container
 {
     /**
      * @brief A small-string-optimized, owned string class.

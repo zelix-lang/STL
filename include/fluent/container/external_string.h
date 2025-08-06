@@ -32,7 +32,7 @@
 #include <xxh3.h>
 #include "fluent/except/exception.h"
 
-namespace fluent::container
+namespace zelix::container
 {
     class external_string
     {

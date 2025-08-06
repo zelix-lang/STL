@@ -32,7 +32,7 @@
 #include "forward.h"
 #include "fluent/except/exception.h"
 
-namespace fluent::container
+namespace zelix::container
 {
     template <typename T>
     class optional

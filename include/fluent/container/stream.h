@@ -30,7 +30,7 @@
 #pragma once
 #include "fluent/container/vector.h"
 
-namespace fluent::container
+namespace zelix::container
 {
     template <typename T>
     class stream
