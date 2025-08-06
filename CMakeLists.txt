@@ -11,14 +11,21 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(xxhash)
-add_library(FluentSTL INTERFACE)
+file(GLOB_RECURSE FLUENT_HEADERS CONFIGURE_DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/extras/*.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/extras/*.hpp)
+add_library(FluentSTL STATIC ${FLUENT_HEADERS}
+        include/fluent/unused.cpp)
 add_library(fluent::stl ALIAS FluentSTL)
 
 target_include_directories(
         FluentSTL
-        INTERFACE
+        PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/extras>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
 
-target_link_libraries(FluentSTL INTERFACE xxhash)
-target_include_directories(FluentSTL INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/extras)
+target_link_libraries(FluentSTL PUBLIC xxhash)
