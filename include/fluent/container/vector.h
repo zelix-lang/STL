@@ -68,7 +68,7 @@ namespace fluent::container
      */
     template <
         typename T,
-        double GrowthFactor = 1.618,
+        double GrowthFactor = 1.8,
         bool Hybrid = false,
         size_t StackSize = 30
     >
