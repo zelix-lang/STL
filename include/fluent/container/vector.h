@@ -337,7 +337,7 @@ namespace fluent::container
          */
         void pop_back()
         {
-            if (size_ > 0)
+            if (__builtin_expect(size_ > 0, 0))
             {
                 --size_;
                 data[size_].~T(); // Call destructor explicitly
