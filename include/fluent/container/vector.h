@@ -250,7 +250,7 @@ namespace fluent::container
          *
          * @param value Element to append.
          */
-        void push_back(T value)
+        void push_back(T &&value)
         {
             if (!initialized)
             {
