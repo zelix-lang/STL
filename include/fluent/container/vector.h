@@ -37,24 +37,6 @@
 
 namespace fluent::container
 {
-    template <typename T, bool Flag, size_t N>
-    struct __fluent_stl_lazy_buffer;
-
-    // Static buffer version
-    template <typename T, size_t N>
-    struct __fluent_stl_lazy_buffer<T, true, N>
-    {
-        T buffer[N]; ///< Static buffer for small sizes
-        bool stack = true; ///< Indicates if the buffer is using stack memory
-    };
-
-    // Dynamic/null buffer version
-    template <typename T, size_t N>
-    struct __fluent_stl_lazy_buffer<T, false, N>
-    {
-        // No buffer defined
-    };
-
     /**
      * @brief A vector implementation that lazily initializes its elements.
      *
@@ -62,17 +44,10 @@ namespace fluent::container
      * Does not allow randomly setting elements at known indices.
      *
      * @tparam T Type of elements stored.
-     * @tparam GrowthFactor Factor by which the capacity grows.
-     * @tparam Hybrid If true, uses a static buffer for small sizes.
-     * @tparam StackSize Size of the static buffer if Hybrid is true.
+     * @tparam GrowthFactor Factor by which the capacity grows
      */
-    template <
-        typename T,
-        double GrowthFactor = 1.8,
-        bool Hybrid = false,
-        size_t StackSize = 30
-    >
-    class vector : __fluent_stl_lazy_buffer<T, Hybrid, StackSize>
+    template <typename T, double GrowthFactor = 1.8>
+    class vector
     {
         bool initialized; ///< Indicates if the internal storage has been initialized.
         T* data;        ///< Pointer to the internal storage array.
@@ -86,13 +61,6 @@ namespace fluent::container
         void init()
         {
             initialized = true;
-
-            // Small-buffer optimization
-            if constexpr (Hybrid)
-            {
-                // Do not initialize heap memory at all
-                return;
-            }
 
             // Trivial-copyable optimization
             if constexpr (std::is_trivially_copyable_v<T>)
@@ -118,32 +86,13 @@ namespace fluent::container
             // Trivial-copyable optimization
             if constexpr (std::is_trivially_copyable_v<T>)
             {
-                if constexpr (Hybrid)
-                {
-                    // Check if we are on stack memory
-                    if (this->stack)
-                    {
-                        T* new_data = static_cast<T*>(malloc(sizeof(T) * new_size));
-                        if (!new_data)
-                        {
-                            throw except::exception("Memory allocation failed");
-                        }
-
-                        memcpy(new_data, data, sizeof(T) * size_);
-                        this->stack = false; // Switch to heap memory
-                        data = new_data;
-                        capacity_ = new_size;
-                        return;
-                    }
-                }
-
                 T* new_data = static_cast<T*>(realloc(data, sizeof(T) * new_size));
                 if (!new_data)
                 {
+                    free(data);
                     throw except::exception("Memory allocation failed");
                 }
 
-                free(data);
                 data = new_data;
                 capacity_ = new_size;
                 return;
@@ -174,15 +123,6 @@ namespace fluent::container
                 // Trivial-copyable optimization
                 if constexpr (std::is_trivially_copyable_v<T>)
                 {
-                    if constexpr (Hybrid)
-                    {
-                        if (this->stack)
-                        {
-                            // No need to free stack memory
-                            return;
-                        }
-                    }
-
                     // Use free for trivial types
                     free(data);
                 }
@@ -193,14 +133,6 @@ namespace fluent::container
                         data[i].~T(); // Call destructor for each element
                     }
 
-                    if constexpr (Hybrid)
-                    {
-                        if (this->stack)
-                        {
-                            // No need to free stack memory
-                            return;
-                        }
-                    }
                     operator delete(data);
                 }
             }
@@ -215,13 +147,6 @@ namespace fluent::container
             : initialized(false), data(nullptr), size_(0), capacity_(10)
         {
             static_assert(GrowthFactor > 1.0, "Growth factor must be greater than 1.0");
-            if constexpr (Hybrid)
-            {
-                // Initialize static buffer if Hybrid is true
-                data = this->buffer;
-                // Set the capacity for stack memory
-                capacity_ = StackSize;
-            }
         }
 
         /**
@@ -427,12 +352,6 @@ namespace fluent::container
             this->data = other.data;
             this->size_ = other.size_;
             this->capacity_ = other.capacity_;
-
-            // Also move the stack buffer if Hybrid is true
-            if constexpr (Hybrid)
-            {
-                this->stack = other.stack;
-            }
 
             // Reset the other vector
             other.initialized = false;
