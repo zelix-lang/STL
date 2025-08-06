@@ -72,7 +72,7 @@ namespace fluent::container
         bool Hybrid = false,
         size_t StackSize = 30
     >
-    class lazy_vector : __fluent_stl_lazy_buffer<T, Hybrid, StackSize>
+    class vector : __fluent_stl_lazy_buffer<T, Hybrid, StackSize>
     {
         bool initialized; ///< Indicates if the internal storage has been initialized.
         T* data;        ///< Pointer to the internal storage array.
@@ -211,7 +211,7 @@ namespace fluent::container
          *
          * Asserts that GrowthFactor is greater than 1.0.
          */
-        lazy_vector()
+        vector()
             : initialized(false), data(nullptr), size_(0), capacity_(10)
         {
             static_assert(GrowthFactor > 1.0, "Growth factor must be greater than 1.0");
@@ -337,24 +337,24 @@ namespace fluent::container
 
         /**
          * @brief Deleted copy constructor.
-         * Prevents copying of lazy_vector instances.
+         * Prevents copying of vector instances.
          */
-        lazy_vector(const lazy_vector&) = delete;
+        vector(const vector&) = delete;
 
         /**
          * @brief Deleted copy assignment operator.
-         * Prevents copying of lazy_vector instances.
+         * Prevents copying of vector instances.
          */
-        lazy_vector& operator=(const lazy_vector&) = delete;
+        vector& operator=(const vector&) = delete;
 
         /**
          * @brief Move constructor.
          *
-         * Transfers ownership of resources from another lazy_vector.
+         * Transfers ownership of resources from another vector.
          *
          * @param other The vector to move from.
          */
-        lazy_vector(lazy_vector&& other) noexcept
+        vector(vector&& other) noexcept
         {
             this->initialized = other.initialized;
             this->data = other.data;
@@ -377,12 +377,12 @@ namespace fluent::container
         /**
          * @brief Move assignment operator.
          *
-         * Transfers ownership of resources from another lazy_vector.
+         * Transfers ownership of resources from another vector.
          *
          * @param other The vector to move from.
-         * @return lazy_vector& Reference to this vector.
+         * @return vector& Reference to this vector.
          */
-        lazy_vector& operator=(lazy_vector&& other) noexcept
+        vector& operator=(vector&& other) noexcept
         {
             if (this != &other)
             {
@@ -550,7 +550,7 @@ namespace fluent::container
         /**
          * @brief Destructor. Destroys all elements and releases memory.
          */
-        ~lazy_vector()
+        ~vector()
         {
             destroy();
         }
