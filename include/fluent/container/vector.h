@@ -548,6 +548,26 @@ namespace fluent::container
         }
 
         /**
+         * @brief Checks if the vector is empty (const version).
+         *
+         * @return true if the vector contains no elements, false otherwise.
+         */
+        [[nodiscard]] bool empty() const
+        {
+            return size_ == 0; // Check if the vector is empty
+        }
+
+        /**
+         * @brief Checks if the vector is empty.
+         *
+         * @return true if the vector contains no elements, false otherwise.
+         */
+        [[nodiscard]] bool empty()
+        {
+            return size_ == 0; // Check if the vector is empty
+        }
+
+        /**
          * @brief Destructor. Destroys all elements and releases memory.
          */
         ~vector()
