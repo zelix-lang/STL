@@ -231,7 +231,7 @@ namespace fluent::container
          */
         void push_back(T &value)
         {
-            if (!initialized)
+            if (__builtin_expect(initialized == 0, 0))
             {
                 init();
             }
@@ -252,7 +252,7 @@ namespace fluent::container
          */
         void push_back(T &&value)
         {
-            if (!initialized)
+            if (__builtin_expect(initialized == 0, 0))
             {
                 init();
             }
@@ -273,7 +273,7 @@ namespace fluent::container
                  */
         void push_back(const T &value)
         {
-            if (!initialized)
+            if (__builtin_expect(initialized == 0, 0))
             {
                 init();
             }
@@ -294,7 +294,7 @@ namespace fluent::container
          */
         void push_back(const T &&value)
         {
-            if (!initialized)
+            if (__builtin_expect(initialized == 0, 0))
             {
                 init();
             }
@@ -317,7 +317,7 @@ namespace fluent::container
         template <typename... Args>
         void emplace_back(Args&&... args)
         {
-            if (!initialized)
+            if (__builtin_expect(initialized == 0, 0))
             {
                 init();
             }
@@ -482,7 +482,7 @@ namespace fluent::container
          */
         T &operator[](size_t index)
         {
-            if (!initialized)
+            if (__builtin_expect(initialized == 0, 0))
                 throw except::exception("Early access to vector");
 
             if (index >= size_)
@@ -501,7 +501,7 @@ namespace fluent::container
          */
         T &operator[](size_t index) const
         {
-            if (!initialized)
+            if (__builtin_expect(initialized == 0, 0))
                 throw except::exception("Early access to vector");
 
             if (index >= size_)
@@ -595,7 +595,7 @@ namespace fluent::container
          */
         T &ref_at(const size_t index)
         {
-            if (!initialized)
+            if (__builtin_expect(initialized == 0, 0))
                 throw except::exception("Early access to vector");
 
             if (index >= size_)
