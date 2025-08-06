@@ -90,7 +90,7 @@ namespace fluent::container
             pos_ = 0; ///< Reset the position to the start of the stream
         }
 
-        size_t pos() const
+        [[nodiscard]] size_t pos() const
         {
             return pos_; ///< Return the current position in the stream
         }
