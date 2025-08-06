@@ -246,6 +246,27 @@ namespace fluent::container
         }
 
         /**
+         * @brief Appends a copy of the given element to the end of the vector.
+         *
+         * @param value Element to append.
+         */
+        void push_back(T value)
+        {
+            if (!initialized)
+            {
+                init();
+            }
+
+            if (size_ >= capacity_)
+            {
+                resize(static_cast<size_t>(capacity_ * GrowthFactor));
+            }
+
+            new (&this->data[size_]) T(container::move(value));
+            ++size_;
+        }
+
+        /**
          * @brief Constructs an element in-place at the end of the vector.
          *
          * @tparam Args Argument types for T's constructor.
