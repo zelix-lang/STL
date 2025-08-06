@@ -30,366 +30,427 @@
 #pragma once
 #include "optional.h"
 #include "move.h"
+#include <cstring>
+#include <type_traits>
+#include <cstdlib>
 #include "fluent/except/exception.h"
 
 namespace fluent::container
 {
-    /**
-     * @brief A hybrid vector implementation with stack and heap allocation.
-     *
-     * Uses stack allocation for small vectors (up to 100 elements), and switches to heap allocation for larger sizes.
-     * Provides basic vector operations similar to std::vector, with custom growth factor and capacity management.
-     *
-     * @tparam T Type of elements stored in the vector.
-     */
-    template <typename T>
-    class vector
+    template <typename T, bool Flag, size_t N>
+    struct __fluent_stl_lazy_buffer;
+
+    // Static buffer version
+    template <typename T, size_t N>
+    struct __fluent_stl_lazy_buffer<T, true, N>
     {
-        size_t len = 0; ///< Length of the vector
-        size_t capacity = 25; ///< Initial capacity of the vector
-        double growth_factor = 2; ///< Growth factor for resizing
-        T stack[100]; ///< Stack-allocated array for small vectors
-        T *data = nullptr; ///< Pointer to the data
-        bool stack_mem = true; ///< Flag to indicate if we are using stack memory
+        T buffer[N]; ///< Static buffer for small sizes
+        bool stack = true; ///< Indicates if the buffer is using stack memory
+    };
+
+    // Dynamic/null buffer version
+    template <typename T, size_t N>
+    struct __fluent_stl_lazy_buffer<T, false, N>
+    {
+        // No buffer defined
+    };
+
+    /**
+     * @brief A vector implementation that lazily initializes its elements.
+     *
+     * Only allows appending elements to the end of the vector.
+     * Does not allow randomly setting elements at known indices.
+     *
+     * @tparam T Type of elements stored.
+     * @tparam GrowthFactor Factor by which the capacity grows.
+     * @tparam Hybrid If true, uses a static buffer for small sizes.
+     * @tparam StackSize Size of the static buffer if Hybrid is true.
+     */
+    template <
+        typename T,
+        double GrowthFactor = 1.618,
+        bool Hybrid = false,
+        size_t StackSize = 30
+    >
+    class lazy_vector : __fluent_stl_lazy_buffer<T, Hybrid, StackSize>
+    {
+        bool initialized; ///< Indicates if the internal storage has been initialized.
+        T* data;        ///< Pointer to the internal storage array.
+        size_t size_;         ///< Number of elements currently stored.
+        size_t capacity_;    ///< Current capacity of the internal storage.
 
         /**
-         * @brief Initializes heap memory for the vector.
-         *
-         * Allocates memory for the vector on the heap and copies existing elements from the stack if necessary.
-         * Throws except::exception if memory allocation fails.
+         * @brief Initializes the internal storage.
+         * Allocates memory for the initial capacity.
          */
         void init()
         {
-            // Throws except::exception if memory allocation fails
-            data = new T[capacity];
+            initialized = true;
 
-            if (len > 0)
+            // Small-buffer optimization
+            if constexpr (Hybrid)
             {
-                // Copy elements from stack to heap if we have already used the stack
-                for (size_t i = 0; i < len; ++i)
+                // Do not initialize heap memory at all
+                return;
+            }
+
+            // Trivial-copyable optimization
+            if constexpr (std::is_trivially_copyable_v<T>)
+            {
+                // Use malloc directly
+                data = static_cast<T*>(malloc(sizeof(T) * capacity_));
+            }
+            else
+            {
+                // Use operator new to allocate raw memory
+                data = static_cast<T*>(operator new(sizeof(T) * capacity_));
+            }
+        }
+
+        /**
+         * @brief Resizes the internal storage when capacity is exceeded.
+         * Allocates new memory, moves existing elements, and releases old memory.
+         * @param new_size The new capacity for the internal storage.
+         */
+        void resize(const size_t new_size)
+        {
+
+            // Trivial-copyable optimization
+            if constexpr (std::is_trivially_copyable_v<T>)
+            {
+                if constexpr (Hybrid)
                 {
-                    data[i] = stack[i]; // Move elements from stack to heap
+                    // Check if we are on stack memory
+                    if (this->stack)
+                    {
+                        T* new_data = static_cast<T*>(malloc(sizeof(T) * new_size));
+                        if (!new_data)
+                        {
+                            throw except::exception("Memory allocation failed");
+                        }
+
+                        memcpy(new_data, data, sizeof(T) * size_);
+                        this->stack = false; // Switch to heap memory
+                        data = new_data;
+                        capacity_ = new_size;
+                        return;
+                    }
+                }
+
+                T* new_data = static_cast<T*>(realloc(data, sizeof(T) * new_size));
+                if (!new_data)
+                {
+                    throw except::exception("Memory allocation failed");
+                }
+
+                free(data);
+                data = new_data;
+                capacity_ = new_size;
+                return;
+            }
+
+            T* new_data = static_cast<T*>(operator new(sizeof(T) * new_size));
+
+            // Move existing elements to new storage
+            for (size_t i = 0; i < size_; ++i)
+            {
+                new (&new_data[i]) T(container::move(data[i]));
+                data[i].~T(); // Call destructor for old element
+            }
+
+            operator delete(data);
+            data = new_data;
+            capacity_ = new_size;
+        }
+
+        /**
+         * @brief Destroys all elements and releases memory.
+         * Calls the destructor for each element and deallocates the internal storage.
+         */
+        void destroy()
+        {
+            if (initialized)
+            {
+                // Trivial-copyable optimization
+                if constexpr (std::is_trivially_copyable_v<T>)
+                {
+                    if constexpr (Hybrid)
+                    {
+                        if (this->stack)
+                        {
+                            // No need to free stack memory
+                            return;
+                        }
+                    }
+
+                    // Use free for trivial types
+                    free(data);
+                }
+                else
+                {
+                    for (size_t i = 0; i < size_; ++i)
+                    {
+                        data[i].~T(); // Call destructor for each element
+                    }
+
+                    if constexpr (Hybrid)
+                    {
+                        if (this->stack)
+                        {
+                            // No need to free stack memory
+                            return;
+                        }
+                    }
+                    operator delete(data);
                 }
             }
         }
-
-        /**
-         * @brief Reallocates heap memory with the current capacity.
-         *
-         * Moves existing elements to a new heap-allocated array and updates the data pointer.
-         * Throws except::exception if memory allocation fails.
-         */
-        void realloc_()
-        {
-            // Create a new array
-            T *new_data = new T[capacity]; // Assume capacity is already set
-            if (!new_data)
-            {
-                throw except::exception("Bad alloc"); // Memory allocation failed
-            }
-
-            // Copy existing elements to the new array
-            for (size_t i = 0; i < len; ++i)
-            {
-                new_data[i] = move(data[i]); // Move elements to the new array
-            }
-
-            delete[] data;
-            data = new_data; // Update the data pointer to the new array
-        }
-
-        /**
-         * @brief Sets the value at the specified index in heap memory.
-         *
-         * @param idx Index to set.
-         * @param value Value to assign.
-         */
-        void set(const size_t idx, const T &value)
-        {
-            data[idx] = value;
-        }
-
-        /**
-         * @brief Sets the value at the specified index in stack memory.
-         *
-         * Throws except::exception if the index is out of bounds.
-         *
-         * @param idx Index to set.
-         * @param value Value to assign.
-         */
-        void set_stack(const size_t idx, const T &value)
-        {
-            if (idx >= 100)
-            {
-                throw except::exception("Index out of bounds for stack-allocated array");
-            }
-
-            stack[idx] = value;
-        }
-
     public:
         /**
-         * @brief Default constructor. Uses stack allocation.
-         */
-        explicit vector()
-        {};
-        /*{
-            // <init();>
-            // Do not allocate right away
-        }*/
-
-        /**
-         * @brief Constructs a vector with a specified capacity.
+         * @brief Default constructor.
          *
-         * Allocates heap memory if capacity is specified.
-         * Throws except::exception if capacity is zero.
-         *
-         * @param capacity Initial capacity.
+         * Asserts that GrowthFactor is greater than 1.0.
          */
-        explicit vector(size_t capacity)
+        lazy_vector()
+            : initialized(false), data(nullptr), size_(0), capacity_(10)
         {
-            if (capacity == 0)
+            static_assert(GrowthFactor > 1.0, "Growth factor must be greater than 1.0");
+            if constexpr (Hybrid)
             {
-                throw except::exception("Capacity must be greater than zero");
+                // Initialize static buffer if Hybrid is true
+                data = this->buffer;
+                // Set the capacity for stack memory
+                capacity_ = StackSize;
             }
-
-            this->capacity = capacity;
-            // Do not initialize heap memory if the capacity is less than 100
-            if (capacity < 100)
-            {
-                stack_mem = true; // Use stack memory
-                return; // No need to allocate heap memory
-            }
-
-            init(); // Init on user request
-            stack_mem = false;
         }
 
         /**
-         * @brief Constructs a vector with a specified capacity and growth factor.
+         * @brief Appends a copy of the given element to the end of the vector.
          *
-         * Allocates heap memory and sets the growth factor.
-         * Throws except::exception if capacity is zero or growth factor is invalid.
-         *
-         * @param capacity Initial capacity.
-         * @param growth_factor Growth factor for resizing.
+         * @param value Element to append.
          */
-        explicit vector(size_t capacity, double growth_factor)
+        void push_back(T &value)
         {
-            if (capacity == 0)
+            if (!initialized)
             {
-                throw except::exception("Capacity must be greater than zero");
+                init();
             }
 
-            if (growth_factor <= 1)
+            if (size_ >= capacity_)
             {
-                throw except::exception("Growth factor must be greater than 1");
+                resize(static_cast<size_t>(capacity_ * GrowthFactor));
             }
 
-            if (growth_factor > 10)
-            {
-                throw except::exception("Growth factor must not exceed 10");
-            }
-
-            this->growth_factor = growth_factor;
-            this->capacity = capacity;
-
-            // Do not initialize heap memory if the capacity is less than 100
-            if (capacity < 100)
-            {
-                stack_mem = true; // Use stack memory
-                return; // No need to allocate heap memory
-            }
-
-            init(); // Init on user request
-            stack_mem = false; // Use heap memory
+            new (&this->data[size_]) T(container::move(value));
+            ++size_;
         }
 
         /**
-         * @brief Ensures the vector has at least the specified capacity.
+         * @brief Constructs an element in-place at the end of the vector.
          *
-         * Reallocates memory if needed.
-         *
-         * @param capacity Minimum required capacity.
-         */
-        void reserve(size_t capacity)
-        {
-            if (this->capacity >= capacity)
-            {
-                return; // Already have enough capacity
-            }
-
-            // Check if we are on stack memory
-            if (stack_mem)
-            {
-                // If we are using stack memory, we need to switch to heap memory
-                if (capacity < 100)
-                {
-                    return; // No need to allocate heap memory for small capacity
-                }
-
-                init(); // Initialize heap memory
-                stack_mem = false; // Switch to heap memory
-            }
-
-            this->capacity = capacity;
-            realloc_();
-        }
-
-        /**
-         * @brief Adds an element to the end of the vector.
-         *
-         * Switches to heap allocation if stack limit is exceeded.
-         * Resizes if needed.
-         *
-         * @param element Element to add.
-         */
-        void push_back(const T &element)
-        {
-            if (stack_mem)
-            {
-                stack[len] = element;
-                len++;
-
-                if (len >= 100)
-                {
-                    // Move to heap allocation if we exceed stack size
-                    if (capacity < 100)
-                    {
-                        capacity = 100; // Ensure we have enough capacity
-                    }
-
-                    init();
-                    stack_mem = false; // Switch to heap memory
-                }
-
-                return; // Element added to stack
-            }
-
-            // Check if we need to resize
-            if (len >= capacity)
-            {
-                // Resize the vector
-                capacity = static_cast<size_t>(capacity * growth_factor);
-                realloc_();
-            }
-
-            // Add the element to the end
-            data[len] = element;
-            len++;
-        }
-
-        /**
-         * @brief Constructs an element in place at the end of the vector.
-         *
-         * Switches to heap allocation if stack limit is exceeded.
-         * Resizes if needed.
-         *
-         * @tparam Args Argument types for element construction.
-         * @param args Arguments to forward to the element constructor.
+         * @tparam Args Argument types for T's constructor.
+         * @param args Arguments to forward to T's constructor.
          */
         template <typename... Args>
-        void emplace_back(Args &&...args)
+        void emplace_back(Args&&... args)
         {
-            if (stack_mem)
+            if (!initialized)
             {
-                new (&stack[len]) T(forward<Args>(args)...);
-                len++;
-
-                if (len >= 100)
-                {
-                    // Move to heap allocation if we exceed stack size
-                    if (capacity < 100)
-                    {
-                        capacity = 100; // Ensure we have enough capacity
-                    }
-
-                    init();
-                    stack_mem = false; // Switch to heap memory
-                }
-
-                return; // Element added to stack
+                init();
             }
 
-            // Check if we need to resize
-            if (len >= capacity)
+            if (size_ >= capacity_)
             {
-                // Resize the vector
-                capacity = static_cast<size_t>(capacity * growth_factor);
-                realloc_();
+                resize(static_cast<size_t>(capacity_ * GrowthFactor));
             }
 
-            // Construct the element in place at the end of the vector
-            new (&data[len]) T(forward<Args>(args)...);
-            len++;
-        }
-
-        /**
-         * @brief Returns the last element in the vector, if any.
-         *
-         * @return optional<T> Last element or nullopt if empty.
-         */
-        optional<T> back()
-        {
-            // Make sure the length is greater than 0
-            if (len == 0)
-            {
-                return optional<T>::none(); // No elements in the vector
-            }
-
-            return data[len - 1]; // Return the last element
+            new (&this->data[size_]) T(container::forward<Args>(args)...);
+            ++size_;
         }
 
         /**
          * @brief Removes the last element from the vector.
-         *
-         * Throws except::exception if the vector is empty.
+         * Calls the destructor for the last element and decreases the size.
          */
         void pop_back()
         {
-            // Make sure the length is greater than 0
-            if (len == 0)
+            if (size_ > 0)
             {
-                throw except::exception("Cannot pop from an empty vector");
+                --size_;
+                data[size_].~T(); // Call destructor explicitly
             }
-
-            if (stack_mem)
-            {
-                // Call the destructor for the last element
-                stack[len - 1].~T();
-            }
-            else
-            {
-                // Call the destructor for the last element
-                data[len - 1].~T();
-            }
-
-            len--; // Decrease the length
         }
 
         /**
-         * @brief Manually sets the length of the vector.
+         * @brief Removes all elements from the vector.
          *
-         * Warning: Use with caution. This does not construct or destruct elements.
-         * May lead to undefined behavior if `n` is greater than the current capacity or
-         * if elements are not properly initialized.
-         *
-         * @param n New length to set.
+         * Calls the destructor for each element and resets the size to zero.
          */
-        void calibrate(const size_t n)
+        void clear()
         {
-            // Warning: use with caution
-            this->len = n;
+            for (size_t i = 0; i < size_; ++i)
+            {
+                data[i].~T();
+            }
+            size_ = 0;
         }
 
         /**
-         * @brief Returns the current number of elements in the vector.
+         * @brief Returns a pointer to the beginning of the data.
+         *
+         * @return T* Pointer to the first element.
+         */
+        T* begin()
+        {
+            return data;
+        }
+
+        /**
+         * @brief Returns a pointer to the end of the data.
+         *
+         * @return T* Pointer past the last element.
+         */
+        T* end()
+        {
+            return data + size_;
+        }
+
+        /**
+         * @brief Returns a pointer to the beginning of the data.
+         *
+         * @return T* Pointer to the first element.
+         */
+        [[nodiscard]] const T* begin() const
+        {
+            return data;
+        }
+
+        /**
+         * @brief Returns a pointer to the end of the data.
+         *
+         * @return T* Pointer past the last element.
+         */
+        [[nodiscard]] const T* end() const
+        {
+            return data + size_;
+        }
+
+        /**
+         * @brief Deleted copy constructor.
+         * Prevents copying of lazy_vector instances.
+         */
+        lazy_vector(const lazy_vector&) = delete;
+
+        /**
+         * @brief Deleted copy assignment operator.
+         * Prevents copying of lazy_vector instances.
+         */
+        lazy_vector& operator=(const lazy_vector&) = delete;
+
+        /**
+         * @brief Move constructor.
+         *
+         * Transfers ownership of resources from another lazy_vector.
+         *
+         * @param other The vector to move from.
+         */
+        lazy_vector(lazy_vector&& other) noexcept
+        {
+            this->initialized = other.initialized;
+            this->data = other.data;
+            this->size_ = other.size_;
+            this->capacity_ = other.capacity_;
+
+            // Also move the stack buffer if Hybrid is true
+            if constexpr (Hybrid)
+            {
+                this->stack = other.stack;
+            }
+
+            // Reset the other vector
+            other.initialized = false;
+            other.data = nullptr;
+            other.size_ = 0;
+            other.capacity_ = 0;
+        }
+
+        /**
+         * @brief Move assignment operator.
+         *
+         * Transfers ownership of resources from another lazy_vector.
+         *
+         * @param other The vector to move from.
+         * @return lazy_vector& Reference to this vector.
+         */
+        lazy_vector& operator=(lazy_vector&& other) noexcept
+        {
+            if (this != &other)
+            {
+                // Clean up current resources
+                destroy();
+
+                // Move resources from other
+                this->initialized = other.initialized;
+                this->data = other.data;
+                this->size_ = other.size_;
+                this->capacity_ = other.capacity_;
+
+                // Reset the other vector
+                other.initialized = false;
+                other.data = nullptr;
+                other.size_ = 0;
+                other.capacity_ = 0;
+            }
+
+            return *this;
+        }
+
+        /**
+         * @brief Accesses the element at the given index.
+         *
+         * @param index Index of the element.
+         * @return T& Reference to the element.
+         * @throws except::exception If accessed before initialization.
+         * @throws except::exception If index is out of bounds.
+         */
+        T &operator[](size_t index)
+        {
+            if (!initialized)
+                throw except::exception("Early access to vector");
+
+            if (index >= size_)
+                throw except::exception("Index out of range");
+
+            return data[index];
+        }
+
+        /**
+         * @brief Accesses the element at the given index (const overload).
+         *
+         * @param index Index of the element.
+         * @return T& Reference to the element.
+         * @throws except::exception If accessed before initialization.
+         * @throws except::exception If index is out of bounds.
+         */
+        T &operator[](size_t index) const
+        {
+            if (!initialized)
+                throw except::exception("Early access to vector");
+
+            if (index >= size_)
+                throw except::exception("Index out of range");
+
+            return data[index];
+        }
+
+        /**
+         * @brief Returns the number of elements in the vector.
          *
          * @return size_t Number of elements.
          */
         [[nodiscard]] size_t size() const
         {
-            return len; // Return the current length of the vector
+            return size_;
         }
 
         /**
@@ -397,306 +458,83 @@ namespace fluent::container
          *
          * @return size_t Capacity.
          */
-        [[nodiscard]] size_t get_capacity() const
+        [[nodiscard]] size_t capacity() const
         {
-            return capacity; // Return the current capacity of the vector
+            return capacity_;
         }
 
         /**
-         * @brief Checks if the vector is empty.
+         * @brief Returns the number of elements in the vector.
          *
-         * @return true if empty, false otherwise.
+         * @return size_t Number of elements.
          */
-        [[nodiscard]] bool empty() const
+        [[nodiscard]] size_t size()
         {
-            return len == 0; // Return true if the vector is empty
+            return size_;
         }
 
         /**
-         * @brief Returns a pointer to the underlying data.
+         * @brief Returns the current capacity of the vector.
+         *
+         * @return size_t Capacity.
+         */
+        [[nodiscard]] size_t capacity()
+        {
+            return capacity_;
+        }
+
+        /**
+         * @brief Returns a pointer to the internal data.
          *
          * @return T* Pointer to data.
          */
-        [[nodiscard]] T *data_ptr()
+        T *ptr()
         {
-            return stack_mem ? stack : data; // Return the pointer to the data
-        }
-
-        /**
-         * @brief Returns the element at the specified index, if within bounds.
-         *
-         * @param index Index to access.
-         * @return optional<T> Element or nullopt if out of bounds.
-         */
-        optional<T> at(const size_t index) const
-        {
-            // Check if the index is within bounds
-            if (index >= len)
-            {
-                return optional<T>::none(); // Index out of bounds
-            }
-
-            if (stack_mem)
-            {
-                return stack[index]; // Return the element at the specified index
-            }
-
-            return data[index]; // Return the element at the specified index
-        }
-
-        /**
-         * @brief Returns the element at the specified index.
-         *
-         * Throws except::exception if index is out of bounds.
-         *
-         * @param index Index to access.
-         * @return T Element.
-         */
-        T operator[](const size_t index)
-        const {
-            if (index >= len)
-            {
-                throw except::exception("Index out of bounds");
-            }
-
-            if (stack_mem)
-            {
-                return stack[index]; // Return a reference to the element at the specified index
-            }
-
-            return data[index]; // Return a reference to the element at the specified index
-        }
-
-        T operator[](const size_t index)
-        {
-            if (index >= len)
-            {
-                throw except::exception("Index out of bounds");
-            }
-
-            if (stack_mem)
-            {
-                return stack[index]; // Return a reference to the element at the specified index
-            }
-
-            return data[index]; // Return a reference to the element at the specified index
-        }
-
-		T &ref_at(const size_t index)
-        {
-            if (stack_mem)
-            {
-                return stack[index]; // Return the element at the specified index
-            }
-
-            return data[index]; // Return the element at the specified index
-        }
-
-        T &ref_at(const size_t index)
-        const {
-            if (stack_mem)
-            {
-                return stack[index]; // Return the element at the specified index
-            }
-
-            return data[index]; // Return the element at the specified index
-        }
-
-        /**
-         * @brief Copy constructor.
-         *
-         * Copies elements from another vector.
-         *
-         * @param other Vector to copy from.
-         */
-        vector(const vector& other)
-        {
-            // Avoid copying
-            clear();
-            reserve(other.size());
-
-            for (size_t i = 0; i < other.len; ++i)
-            {
-                push_back(other[i]);
-            }
-        }
-
-        /**
-         * @brief Move constructor.
-         *
-         * Moves resources from another vector.
-         *
-         * @param other Vector to move from.
-         */
-        vector(vector&& other) noexcept
-            : len(other.len),
-            capacity(other.capacity),
-            growth_factor(other.growth_factor),
-            data(other.data),
-            stack_mem(other.stack_mem)
-        {
-            other.data = nullptr;
-            other.capacity = 0;
-
-            if (other.stack_mem)
-            {
-                // Move stack memory to this instance
-                for (size_t i = 0; i < other.len; i++)
-                {
-                    stack[i] = move(other.stack[i]); // Move elements from other stack to this stack
-                }
-            }
-
-            other.len = 0;
-            other.stack_mem = true; // Reset the other vector to stack memory
-        }
-
-        /**
-         * @brief Move assignment operator.
-         *
-         * Moves resources from another vector.
-         *
-         * @param other Vector to move from.
-         * @return vector& Reference to this vector.
-         */
-        vector& operator=(vector&& other) noexcept
-        {
-            if (this != &other)
-            {
-                clear();
-                if (!stack_mem)
-                {
-                    delete[] data;
-                }
-
-                len = other.len;
-                capacity = other.capacity;
-                growth_factor = other.growth_factor;
-                data = other.data;
-                stack_mem = other.stack_mem;
-
-                if (stack_mem)
-                {
-                    // Copy stack memory from other
-                    for (size_t i = 0; i < other.len; i++)
-                    {
-                        stack[i] = move(other.stack[i]); // Move elements from other stack to this stack
-                    }
-                }
-
-                other.data = nullptr;
-                other.len = 0;
-                other.capacity = 0;
-            }
-            return *this;
-        }
-
-        /**
-         * @brief Copy assignment operator.
-         *
-         * Copies elements from another vector.
-         *
-         * @param other Vector to copy from.
-         * @return vector& Reference to this vector.
-         */
-        vector& operator=(const vector& other)
-        {
-            if (this != &other)
-            {
-                clear();
-                reserve(other.len);
-                for (size_t i = 0; i < other.len; ++i)
-                {
-                    emplace_back(other[i]);
-                }
-            }
-            return *this;
-        }
-
-        /**
-         * @brief Returns a pointer to the beginning of the vector.
-         *
-         * @return T* Pointer to beginning.
-         */
-        T *begin()
-        {
-            if (stack_mem)
-            {
-                return stack; // Return pointer to the beginning of the stack-allocated array
-            }
-
             return data;
         }
 
         /**
-         * @brief Returns a pointer to the end of the vector.
-         *
-         * @return T* Pointer to end.
+         * @brief Shrinks the capacity to fit the current size.
+         * Reduces memory usage if possible.
          */
-        T *end()
+        void shrink_to_fit()
         {
-            if (stack_mem)
+            if (size_ < capacity_)
             {
-                return stack + len; // Return pointer to the end of the stack-allocated array
+                resize(size_);
             }
-
-            return data + len; // Return pointer to the end of the vector
-        }
-
-        const T* begin() const
-        {
-            if (stack_mem)
-            {
-                return stack; // Return pointer to the beginning of the stack-allocated array
-            }
-
-            return data;
-        }
-
-        const T* end() const
-        {
-            if (stack_mem)
-            {
-                return stack + len; // Return pointer to the end of the stack-allocated array
-            }
-
-            return data + len;
         }
 
         /**
-         * @brief Clears the vector, destroying all elements.
+         * @brief Reserves capacity for at least new_capacity elements.
+         * Increases the internal storage if needed.
+         * @param new_capacity The minimum capacity to reserve.
          */
-        void clear()
+        void reserve(const size_t new_capacity)
         {
-            if (stack_mem)
+            if (new_capacity > capacity_)
             {
-                for (size_t i = 0; i < len; ++i)
-                {
-                    stack[i].~T(); // Call the destructor for each element
-                }
+                resize(new_capacity);
+                initialized = true;
             }
-            else
-            {
-                for (size_t i = 0; i < len; ++i)
-                {
-                    data[i].~T(); // Call the destructor for each element
-                }
-            }
-
-            len = 0;
         }
 
         /**
-         * @brief Destructor. Cleans up resources.
+         * @brief Returns a reference to the last element in the vector.
+         * @return T& Reference to the last element.
+         * @throws except::exception If the vector is empty.
          */
-        ~vector()
-        {
-            clear();
+        T& back() {
+            if (size_ == 0) throw except::exception("back() on empty vector");
+            return data[size_ - 1];
+        }
 
-            if (!stack_mem)
-            {
-                delete[] data; // Free the allocated memory
-            }
+        /**
+         * @brief Destructor. Destroys all elements and releases memory.
+         */
+        ~lazy_vector()
+        {
+            destroy();
         }
     };
 }
