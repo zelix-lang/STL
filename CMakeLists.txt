@@ -17,7 +17,7 @@ file(GLOB_RECURSE ZELIX_STL_HEADERS CONFIGURE_DEPENDS
         ${CMAKE_CURRENT_SOURCE_DIR}/extras/*.h
         ${CMAKE_CURRENT_SOURCE_DIR}/extras/*.hpp)
 add_library(ZelixSTL STATIC ${ZELIX_STL_HEADERS}
-        include/fluent/unused.cpp)
+        include/zelix/unused.cpp)
 add_library(zelix::stl ALIAS ZelixSTL)
 
 target_include_directories(
