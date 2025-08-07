@@ -30,7 +30,7 @@
 #pragma once
 #include <cstring>
 #include <xxh3.h>
-#include "fluent/except/exception.h"
+#include "zelix/except/exception.h"
 
 namespace zelix::container
 {
