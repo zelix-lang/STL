@@ -156,7 +156,11 @@ namespace zelix::container
          */
         void push_back(T &value)
         {
+#           if defined(__GNUC__) || defined(__clang__)
             if (__builtin_expect(initialized == 0, 0))
+#           else
+            if (!initialized)
+#           endif
             {
                 init();
             }
@@ -177,7 +181,11 @@ namespace zelix::container
          */
         void push_back(T &&value)
         {
+#           if defined(__GNUC__) || defined(__clang__)
             if (__builtin_expect(initialized == 0, 0))
+#           else
+            if (!initialized)
+#           endif
             {
                 init();
             }
@@ -198,7 +206,11 @@ namespace zelix::container
                  */
         void push_back(const T &value)
         {
+#           if defined(__GNUC__) || defined(__clang__)
             if (__builtin_expect(initialized == 0, 0))
+#           else
+            if (!initialized)
+#           endif
             {
                 init();
             }
@@ -219,7 +231,11 @@ namespace zelix::container
          */
         void push_back(const T &&value)
         {
+#           if defined(__GNUC__) || defined(__clang__)
             if (__builtin_expect(initialized == 0, 0))
+#           else
+            if (!initialized)
+#           endif
             {
                 init();
             }
@@ -242,7 +258,11 @@ namespace zelix::container
         template <typename... Args>
         void emplace_back(Args&&... args)
         {
+#           if defined(__GNUC__) || defined(__clang__)
             if (__builtin_expect(initialized == 0, 0))
+#           else
+            if (!initialized)
+#           endif
             {
                 init();
             }
@@ -262,7 +282,11 @@ namespace zelix::container
          */
         void pop_back()
         {
+#           if defined(__GNUC__) || defined(__clang__)
             if (__builtin_expect(size_ > 0, 1))
+#           else
+            if (size_ > 0)
+#           endif
             {
                 --size_;
                 data[size_].~T(); // Call destructor explicitly
@@ -401,7 +425,11 @@ namespace zelix::container
          */
         T &operator[](size_t index)
         {
+#           if defined(__GNUC__) || defined(__clang__)
             if (__builtin_expect(initialized == 0, 0))
+#           else
+            if (!initialized)
+#           endif
                 throw except::exception("Early access to vector");
 
             if (index >= size_)
@@ -420,7 +448,11 @@ namespace zelix::container
          */
         T &operator[](size_t index) const
         {
+#           if defined(__GNUC__) || defined(__clang__)
             if (__builtin_expect(initialized == 0, 0))
+#           else
+            if (!initialized)
+#           endif
                 throw except::exception("Early access to vector");
 
             if (index >= size_)
@@ -514,7 +546,11 @@ namespace zelix::container
          */
         T &ref_at(const size_t index)
         {
+#           if defined(__GNUC__) || defined(__clang__)
             if (__builtin_expect(initialized == 0, 0))
+#           else
+            if (!initialized)
+#           endif
                 throw except::exception("Early access to vector");
 
             if (index >= size_)
