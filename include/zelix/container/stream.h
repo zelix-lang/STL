@@ -50,14 +50,19 @@ namespace zelix::container
             data_.push_back(value); ///< Add a new value to the stream
         }
 
-        optional<T> peek()
+        optional<T> peek(const size_t n)
         {
-            if (pos_ >= data_.size())
+            if (pos_ + n >= data_.size())
             {
                 return optional<T>::none(); ///< Return nullopt if no more elements
             }
 
-            return optional<T>::some(data_[pos_]); ///< Return the next element without advancing
+            return optional<T>::some(data_[pos_ + n]); ///< Return the next element without advancing
+        }
+
+        optional<T> peek()
+        {
+           return peek(0); ///< Peek at the current element without advancing
         }
 
 		optional<T> curr()
