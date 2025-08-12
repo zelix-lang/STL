@@ -255,6 +255,31 @@ namespace zelix::container
         }
 
         /**
+         * @brief Concatenation operator for string + string.
+         */
+        string operator+(string& other)
+        {
+            string result;
+            result.reserve(len + other.len);
+            result.push(c_str(), len);
+            result.push(other.c_str(), other.len);
+            return result;
+        }
+
+        /**
+         * @brief Concatenation operator for string + const char*.
+         */
+        string operator+(const char* other)
+        {
+            const size_t other_len = strlen(other);
+            string result;
+            result.reserve(len + other_len);
+            result.push(c_str(), len);
+            result.push(other, other_len);
+            return result;
+        }
+
+        /**
          * @brief Returns the current length of the string.
          * @return The number of characters in the string.
          */
