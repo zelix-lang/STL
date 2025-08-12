@@ -74,7 +74,10 @@ namespace zelix::container
             capacity = max_capacity + 1;
             const auto new_heap = new char[capacity];
             memcpy(new_heap, heap, len); // Copy existing data to new heap
-            delete[] heap; // Free old heap memory
+            if (heap)
+            {
+                delete[] heap; // Free old heap memory
+            }
             heap = new_heap; // Update heap pointer
         }
 
