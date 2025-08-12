@@ -106,6 +106,55 @@ namespace zelix::container
         }
 
         /**
+         * @brief Constructs a string from a C-style string with a specified capacity.
+         * @param str Pointer to the character array to copy from.
+         * @param capacity The number of characters to copy and the initial capacity.
+         *
+         * Uses stack memory if the capacity is small enough, otherwise allocates on the heap.
+         */
+        explicit string(const char *str, const size_t capacity)
+        {
+            // Determine if we have to use the stack or heap
+            if (capacity <= max_capacity) // -1 to account for null terminator
+            {
+                this->capacity = sizeof(stack);
+                stack_mem = true; // Use stack memory
+                memcpy(stack, str, capacity);
+            }
+            else
+            {
+                this->capacity = capacity;
+                heap_init(); // Initialize heap buffer
+                memcpy(heap, str, capacity);
+            }
+        }
+
+        /**
+         * @brief Constructs a string from a null-terminated C-style string.
+         * @param str Pointer to the null-terminated character array to copy from.
+         *
+         * Uses stack memory if the string is small enough, otherwise allocates on the heap.
+         */
+        explicit string(const char *str)
+        {
+            const auto s_len = strlen(str); // Get the length of the string
+
+            // Determine if we have to use the stack or heap
+            if (s_len <= max_capacity) // -1 to account for null terminator
+            {
+                this->capacity = sizeof(stack);
+                stack_mem = true; // Use stack memory
+                memcpy(stack, str, s_len);
+            }
+            else
+            {
+                this->capacity = s_len;
+                heap_init(); // Initialize heap buffer
+                memcpy(heap, str, s_len);
+            }
+        }
+
+        /**
          * @brief Returns a pointer to a null-terminated C-style string.
          * @return Pointer to the string data.
          *
