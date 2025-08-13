@@ -29,6 +29,7 @@
 
 #pragma once
 #include <cstring>
+#include <xxh3.h>
 
 namespace zelix::container
 {
@@ -185,8 +186,8 @@ namespace zelix::container
             }
         }
 
-        char *ptr()
-        {
+        const char *ptr()
+        const {
             if (stack_mem)
             {
                 return stack; // Return stack memory pointer
@@ -316,6 +317,23 @@ namespace zelix::container
                 delete[] heap; // Free heap memory if allocated
                 heap = nullptr;
             }
+        }
+    };
+
+    struct string_hash
+    {
+        using is_transparent = void;
+
+        size_t operator()(const string &str) const
+        {
+            // Use xxHash
+            return XXH3_64bits(str.ptr(), str.size());
+        }
+
+        size_t operator()(const char* c_str) const
+        {
+            const size_t len = strlen(c_str);
+            return XXH64(c_str, len, len);
         }
     };
 }
