@@ -298,6 +298,18 @@ namespace zelix::container
             return result;
         }
 
+        bool operator==(const string& other) const
+        {
+            if (len != other.len) return false;
+            return memcmp(ptr(), other.ptr(), len) == 0;
+        }
+
+        bool operator==(const char *other) const
+        {
+            if (len != strlen(other)) return false;
+            return memcmp(ptr(), other, len) == 0;
+        }
+
         /**
          * @brief Returns the current length of the string.
          * @return The number of characters in the string.
