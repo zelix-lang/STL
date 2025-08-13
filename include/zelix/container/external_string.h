@@ -108,7 +108,8 @@ namespace zelix::container
             return XXH3_64bits(str.ptr(), str.size());
         }
 
-        size_t operator()(const char* c_str) const {
+        size_t operator()(const char* c_str) const
+        {
             const size_t len = strlen(c_str);
             return XXH64(c_str, len, len);
         }
