@@ -185,6 +185,18 @@ namespace zelix::container
             }
         }
 
+        char *ptr()
+        {
+            if (stack_mem)
+            {
+                return stack; // Return stack memory pointer
+            }
+            else
+            {
+                return heap; // Return heap memory pointer
+            }
+        }
+
         /**
          * @brief Ensures the string has enough capacity for additional data.
          * @param required The additional capacity to reserve.
