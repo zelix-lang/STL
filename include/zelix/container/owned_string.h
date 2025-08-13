@@ -111,25 +111,26 @@ namespace zelix::container
         /**
          * @brief Constructs a string from a C-style string with a specified capacity.
          * @param str Pointer to the character array to copy from.
-         * @param capacity The number of characters to copy and the initial capacity.
+         * @param s_len The number of characters to copy.
          *
          * Uses stack memory if the capacity is small enough, otherwise allocates on the heap.
          */
-        explicit string(const char *str, const size_t capacity)
+        explicit string(const char *str, const size_t s_len)
         {
             // Determine if we have to use the stack or heap
             if (capacity <= max_capacity) // -1 to account for null terminator
             {
                 this->capacity = sizeof(stack);
                 stack_mem = true; // Use stack memory
-                memcpy(stack, str, capacity);
+                memcpy(stack, str, s_len);
             }
             else
             {
-                this->capacity = capacity;
-                heap_init(); // Initialize heap buffer
-                memcpy(heap, str, capacity);
+                reserve(s_len);
+                memcpy(heap, str, s_len);
             }
+
+            len = s_len; // Set the length of the string
         }
 
         /**
@@ -155,6 +156,8 @@ namespace zelix::container
                 heap_init(); // Initialize heap buffer
                 memcpy(heap, str, s_len);
             }
+
+            len = s_len; // Set the length of the string
         }
 
         /**
