@@ -29,8 +29,6 @@
 
 #pragma once
 
-#include "vector.h"
-
 namespace zelix::container
 {
     /**
