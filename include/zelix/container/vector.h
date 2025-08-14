@@ -29,7 +29,6 @@
 
 #pragma once
 #include <cstdlib>
-#include <cstring>
 #include <type_traits>
 #include "move.h"
 #include "optional.h"
