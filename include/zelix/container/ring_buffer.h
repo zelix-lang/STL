@@ -29,6 +29,7 @@
 
 #pragma once
 #include <cstddef>
+#include "forward.h"
 
 namespace zelix::container
 {
@@ -65,6 +66,18 @@ namespace zelix::container
             }
 
             data[head++] = value; // Add the element if there's space
+        }
+
+        template <typename... Args>
+        void emplace_back(Args&&... args)
+        {
+            if (head >= Max)
+            {
+                head = 0; // Reset the head if it exceeds the maximum size
+            }
+
+            new (&this->data[head]) T(container::forward<Args>(args)...);
+            ++head;
         }
 
         /**
