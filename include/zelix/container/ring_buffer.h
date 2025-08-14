@@ -28,6 +28,7 @@
 //
 
 #pragma once
+#include <cstddef>
 
 namespace zelix::container
 {
