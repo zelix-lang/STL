@@ -48,6 +48,9 @@ namespace zelix::container
         size_t head = 0;  ///< The index of the next element to be added
 
     public:
+        explicit ring_buffer()
+        {}
+
         /**
          * \brief Adds an element to the end of the ring buffer.
          *
