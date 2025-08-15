@@ -262,6 +262,27 @@ namespace zelix::container
         }
 
         /**
+         * @brief Creates a string object that uses an external buffer without copying.
+         *
+         * The returned string will directly reference the provided buffer.
+         * The caller is responsible for ensuring the buffer remains valid for the lifetime of the string.
+         * No memory is allocated or copied.
+         *
+         * @param buf Pointer to the external character buffer.
+         * @param buf_len Length of the buffer.
+         * @return string referencing the external buffer.
+         */
+        static string no_copy(const char *buf, const size_t buf_len)
+        {
+            string str;
+            str.heap = const_cast<char*>(buf); // Use the provided buffer directly
+            str.len = buf_len;
+            str.capacity = buf_len + 1; // Set capacity to length + null terminator
+            str.max_capacity = buf_len; // Set max capacity to length
+            return str;
+        }
+
+        /**
          * @brief Destructor. Releases heap memory if allocated.
          */
         ~string()
