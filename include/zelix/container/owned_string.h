@@ -34,19 +34,16 @@
 namespace zelix::container
 {
     /**
-     * @brief A small-string-optimized, owned string class.
+     * @brief A owned string class.
      *
-     * Uses stack allocation for small strings and switches to heap allocation for larger strings.
      * Provides basic push and reserve operations, and exposes a C-style string interface.
      */
     class string
     {
-        char stack[256]{}; ///< Stack-allocated buffer for small strings
         char* heap = nullptr; ///< Pointer to heap-allocated string for larger strings
         size_t len = 0; ///< Length of the string
-        size_t max_capacity = sizeof(stack) - 1; ///< Maximum capacity of the stack buffer, -1 for null terminator
-        size_t capacity = max_capacity + 1; ///< Capacity of the string
-        bool stack_mem = true; ///< Flag to indicate if the string is using stack memory
+        size_t max_capacity = 0; ///< Maximum capacity of the stack buffer, -1 for null terminator
+        size_t capacity = 0; ///< Capacity of the string
         double growth_factor = 1.8; ///< Growth factor for heap allocation
 
         /**
@@ -57,11 +54,9 @@ namespace zelix::container
         void heap_init()
         {
             // Initialize the heap-allocated string if needed
-            max_capacity = static_cast<size_t>(sizeof(stack) * growth_factor - 1); // Adjust max capacity based on growth factor
+            max_capacity = static_cast<size_t>(capacity * growth_factor - 1); // Adjust max capacity based on growth factor
             capacity = max_capacity + 1;
             heap = new char[capacity];
-            stack_mem = false;
-            memcpy(heap, stack, sizeof(stack));
         }
 
         /**
@@ -75,10 +70,7 @@ namespace zelix::container
             capacity = max_capacity + 1;
             const auto new_heap = new char[capacity];
             memcpy(new_heap, heap, len); // Copy existing data to new heap
-            if (heap)
-            {
-                delete[] heap; // Free old heap memory
-            }
+            delete[] heap; // Free old heap memory
             heap = new_heap; // Update heap pointer
         }
 
@@ -96,17 +88,8 @@ namespace zelix::container
          */
         explicit string(const size_t capacity)
         {
-            // Determine if we have to use the stack or heap
-            if (capacity <= max_capacity) // -1 to account for null terminator
-            {
-                this->capacity = sizeof(stack);
-                stack_mem = true; // Use stack memory
-            }
-            else
-            {
-                this->capacity = capacity;
-                heap_init(); // Initialize heap buffer
-            }
+            this->capacity = capacity;
+            heap_init(); // Initialize heap buffer
         }
 
         /**
@@ -118,19 +101,8 @@ namespace zelix::container
          */
         explicit string(const char *str, const size_t s_len)
         {
-            // Determine if we have to use the stack or heap
-            if (capacity <= max_capacity) // -1 to account for null terminator
-            {
-                this->capacity = sizeof(stack);
-                stack_mem = true; // Use stack memory
-                memcpy(stack, str, s_len);
-            }
-            else
-            {
-                reserve(s_len);
-                memcpy(heap, str, s_len);
-            }
-
+            reserve(s_len);
+            memcpy(heap, str, s_len);
             len = s_len; // Set the length of the string
         }
 
@@ -144,20 +116,9 @@ namespace zelix::container
         {
             const auto s_len = strlen(str); // Get the length of the string
 
-            // Determine if we have to use the stack or heap
-            if (s_len <= max_capacity) // -1 to account for null terminator
-            {
-                this->capacity = sizeof(stack);
-                stack_mem = true; // Use stack memory
-                memcpy(stack, str, s_len);
-            }
-            else
-            {
-                this->capacity = s_len;
-                heap_init(); // Initialize heap buffer
-                memcpy(heap, str, s_len);
-            }
-
+            this->capacity = s_len;
+            heap_init(); // Initialize heap buffer
+            memcpy(heap, str, s_len);
             len = s_len; // Set the length of the string
         }
 
@@ -167,35 +128,20 @@ namespace zelix::container
          *
          * Ensures the string is null-terminated before returning.
          */
-        char *c_str()
+        [[nodiscard]] char *c_str() const
         {
-            if (stack_mem)
+            if (heap)
             {
-                stack[len] = '\0'; // Ensure null termination for stack memory
-                return stack;
+                heap[len] = '\0'; // Ensure null termination for heap memory
+                return heap;
             }
-            else
-            {
-                if (heap)
-                {
-                    heap[len] = '\0'; // Ensure null termination for heap memory
-                    return heap;
-                }
 
-                return nullptr; // Return nullptr if no memory is allocated
-            }
+            return nullptr; // Return nullptr if no memory is allocated
         }
 
-        const char *ptr()
+        [[nodiscard]] const char *ptr()
         const {
-            if (stack_mem)
-            {
-                return stack; // Return stack memory pointer
-            }
-            else
-            {
-                return heap; // Return heap memory pointer
-            }
+            return heap; // Return heap memory pointer
         }
 
         /**
@@ -206,16 +152,15 @@ namespace zelix::container
          */
         void reserve(const size_t required)
         {
-            if (stack_mem)
+            if (heap == nullptr)
             {
-                // Check if we need to switch to heap memory
-                if (len + required > max_capacity)
-                {
-                    heap_init(); // Switch to heap memory
-                }
+                heap = new char[required];
+                capacity = required + 1;
+                max_capacity = static_cast<size_t>(capacity * growth_factor - 1);
+                return;
             }
 
-            if (!stack_mem && len + required > max_capacity)
+            if (len + required > max_capacity)
             {
                 // Check if we need to grow the heap memory
                 auto new_capacity = static_cast<size_t>(capacity * growth_factor);
@@ -238,14 +183,7 @@ namespace zelix::container
         void push(const char c)
         {
             reserve(1); // Reserve space for one character
-            if (stack_mem)
-            {
-                stack[len++] = c; // Add character to stack memory
-            }
-            else
-            {
-                heap[len++] = c; // Add character to heap memory
-            }
+            heap[len++] = c; // Add character to heap memory
         }
 
         /**
@@ -256,15 +194,7 @@ namespace zelix::container
         void push(const char *c, const size_t c_len)
         {
             reserve(c_len); // Reserve space for one character
-            if (stack_mem)
-            {
-                memcpy(stack + len, c, c_len);
-            }
-            else
-            {
-                memcpy(heap + len, c, c_len);
-            }
-
+            memcpy(heap + len, c, c_len);
             len += c_len; // Update the length of the string
         }
 
@@ -276,12 +206,20 @@ namespace zelix::container
         /**
          * @brief Concatenation operator for string + string.
          */
-        string operator+(string& other)
+        string operator+(const string & other) const
         {
             string result;
             result.reserve(len + other.len);
-            result.push(c_str(), len);
-            result.push(other.c_str(), other.len);
+            if (heap != nullptr)
+            {
+                result.push(c_str(), len);
+            }
+
+            if (other.heap != nullptr)
+            {
+                result.push(other.c_str(), other.len);
+            }
+
             return result;
         }
 
@@ -289,11 +227,15 @@ namespace zelix::container
          * @brief Concatenation operator for string + const char*.
          */
         string operator+(const char* other)
-        {
+        const {
             const size_t other_len = strlen(other);
             string result;
             result.reserve(len + other_len);
-            result.push(c_str(), len);
+            if (heap != nullptr)
+            {
+                result.push(c_str(), len);
+            }
+
             result.push(other, other_len);
             return result;
         }
@@ -324,7 +266,7 @@ namespace zelix::container
          */
         ~string()
         {
-            if (!stack_mem && heap)
+            if (!heap)
             {
                 delete[] heap; // Free heap memory if allocated
                 heap = nullptr;
