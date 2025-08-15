@@ -60,6 +60,7 @@ namespace zelix::container
         void init()
         {
             initialized = true;
+            capacity_ = 32;
 
             // Trivial-copyable optimization
             if constexpr (std::is_trivially_copyable_v<T>)
