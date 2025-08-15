@@ -290,6 +290,15 @@ namespace zelix::container
             {
                 --size_;
                 data[size_].~T(); // Call destructor explicitly
+
+                // Free memory if we reached 0 elements
+                if (size_ == 0 && initialized)
+                {
+                    destroy();
+                    initialized = false;
+                    data = nullptr;
+                    capacity_ = 0;
+                }
             }
         }
 
