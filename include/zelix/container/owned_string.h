@@ -284,7 +284,7 @@ namespace zelix::container
         const {
             const size_t other_len = strlen(other);
             string result;
-            result.reserve_growth(len + other_len);
+            result.reserve(len + other_len);
             if (heap != nullptr)
             {
                 result.push(c_str(), len);
