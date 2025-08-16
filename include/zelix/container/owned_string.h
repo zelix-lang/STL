@@ -263,7 +263,7 @@ namespace zelix::container
         string operator+(const string & other) const
         {
             string result;
-            result.reserve_growth(len + other.len);
+            result.reserve(len + other.len);
             if (heap != nullptr)
             {
                 result.push(c_str(), len);
