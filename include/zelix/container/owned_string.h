@@ -122,6 +122,15 @@ namespace zelix::container
             len = s_len; // Set the length of the string
         }
 
+        string(string && other) noexcept
+            : heap(other.heap), len(other.len), max_capacity(other.max_capacity), capacity(other.capacity)
+        {
+            other.heap = nullptr; // Transfer ownership, set other's heap to nullptr
+            other.len = 0;
+            other.max_capacity = 0;
+            other.capacity = 0;
+        }
+
         /**
          * @brief Returns a pointer to a null-terminated C-style string.
          * @return Pointer to the string data.
