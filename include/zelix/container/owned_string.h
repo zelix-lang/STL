@@ -30,6 +30,7 @@
 #pragma once
 #include <cstring>
 #include <xxh3.h>
+#include "external_string.h"
 
 namespace zelix::container
 {
