@@ -248,6 +248,12 @@ namespace zelix::container
             return memcmp(ptr(), other.ptr(), len) == 0;
         }
 
+        bool operator==(const external_string& other) const
+        {
+            if (len != other.size()) return false;
+            return memcmp(ptr(), other.ptr(), len) == 0;
+        }
+
         bool operator==(const char *other) const
         {
             if (len != strlen(other)) return false;
