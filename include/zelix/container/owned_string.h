@@ -132,7 +132,8 @@ namespace zelix::container
             other.capacity = 0;
         }
 
-        string(const string& other) {
+        string(const string& other)
+        {
             len = other.len;
             max_capacity = other.max_capacity;
             capacity = other.capacity;
@@ -140,7 +141,8 @@ namespace zelix::container
             memcpy(heap, other.heap, len);
         }
 
-        string& operator=(const string& other) {
+        string& operator=(const string& other)
+        {
             if (this != &other) {
                 delete[] heap;
                 len = other.len;
@@ -170,7 +172,8 @@ namespace zelix::container
         }
 
         [[nodiscard]] const char *ptr()
-        const {
+        const
+        {
             return heap; // Return heap memory pointer
         }
 
