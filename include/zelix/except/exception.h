@@ -32,7 +32,7 @@
 
 namespace zelix::except
 {
-    class exception final : public std::exception
+    class exception : public std::exception
     {
         const char *message; ///< Error message
 
