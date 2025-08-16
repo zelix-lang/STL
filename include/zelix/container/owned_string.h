@@ -31,8 +31,6 @@
 #include <cstring>
 #include <xxh3.h>
 
-#include "external_string.h"
-
 namespace zelix::container
 {
     /**
@@ -248,12 +246,6 @@ namespace zelix::container
             return memcmp(ptr(), other.ptr(), len) == 0;
         }
 
-        bool operator==(const external_string& other) const
-        {
-            if (len != other.size()) return false;
-            return memcmp(ptr(), other.ptr(), len) == 0;
-        }
-
         bool operator==(const char *other) const
         {
             if (len != strlen(other)) return false;
@@ -308,12 +300,6 @@ namespace zelix::container
         using is_transparent = void;
 
         size_t operator()(const string &str) const
-        {
-            // Use xxHash
-            return XXH3_64bits(str.ptr(), str.size());
-        }
-
-        size_t operator()(const external_string &str) const
         {
             // Use xxHash
             return XXH3_64bits(str.ptr(), str.size());
