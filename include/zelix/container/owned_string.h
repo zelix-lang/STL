@@ -79,7 +79,11 @@ namespace zelix::container
         /**
          * @brief Default constructor. Initializes an empty string using stack memory.
          */
-        explicit string() = default;
+        explicit string()
+        {
+            capacity = 12;
+            heap_init();
+        }
 
         /**
          * @brief Constructs a string with a specified capacity.
@@ -183,13 +187,13 @@ namespace zelix::container
          *
          * Switches to heap memory or grows the heap buffer if needed.
          */
-        void reserve(const size_t required)
+        void reserve_growth(const size_t required)
         {
             if (heap == nullptr)
             {
-                heap = new char[required];
                 capacity = required + 1;
-                max_capacity = static_cast<size_t>(capacity * growth_factor - 1);
+                heap = new char[capacity];
+                max_capacity = required;
                 return;
             }
 
@@ -209,13 +213,30 @@ namespace zelix::container
             }
         }
 
+        void reserve(const size_t required)
+        {
+            if (heap == nullptr)
+            {
+                capacity = required + 1;
+                heap = new char[capacity];
+                max_capacity = required;
+                return;
+            }
+
+            if (len + required > max_capacity)
+            {
+                max_capacity = len + required;
+                reallocate();
+            }
+        }
+
         /**
          * @brief Appends a single character to the string.
          * @param c The character to append.
          */
         void push(const char c)
         {
-            reserve(1); // Reserve space for one character
+            reserve_growth(1); // Reserve space for one character
             heap[len++] = c; // Add character to heap memory
         }
 
@@ -226,7 +247,7 @@ namespace zelix::container
          */
         void push(const char *c, const size_t c_len)
         {
-            reserve(c_len); // Reserve space for one character
+            reserve_growth(c_len); // Reserve space for one character
             memcpy(heap + len, c, c_len);
             len += c_len; // Update the length of the string
         }
@@ -242,7 +263,7 @@ namespace zelix::container
         string operator+(const string & other) const
         {
             string result;
-            result.reserve(len + other.len);
+            result.reserve_growth(len + other.len);
             if (heap != nullptr)
             {
                 result.push(c_str(), len);
@@ -263,7 +284,7 @@ namespace zelix::container
         const {
             const size_t other_len = strlen(other);
             string result;
-            result.reserve(len + other_len);
+            result.reserve_growth(len + other_len);
             if (heap != nullptr)
             {
                 result.push(c_str(), len);
