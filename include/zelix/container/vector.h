@@ -149,6 +149,54 @@ namespace zelix::container
             static_assert(GrowthFactor > 1.0, "Growth factor must be greater than 1.0");
         }
 
+        vector(vector&& other) noexcept
+            : initialized(other.initialized)
+            , data(other.data)
+            , size_(other.size_)
+            , capacity_(other.capacity_)
+        {
+            other.data = nullptr;
+            other.initialized = false;
+            other.size_ = 0;
+            other.capacity_ = 0;
+        }
+
+        vector(vector& other) noexcept
+            : initialized(other.initialized)
+            , data(other.data)
+            , size_(other.size_)
+            , capacity_(other.capacity_)
+        {
+            other.data = nullptr;
+            other.initialized = false;
+            other.size_ = 0;
+            other.capacity_ = 0;
+        }
+
+        vector& operator=(const vector& other) {
+            if (this != &other) {
+                destroy();
+                initialized = other.initialized;
+                size_ = other.size_;
+                capacity_ = other.capacity_;
+                if (other.data) {
+                    if constexpr (std::is_trivially_copyable_v<T>) {
+                        data = static_cast<T*>(malloc(sizeof(T) * capacity_));
+                        memcpy(data, other.data, sizeof(T) * size_);
+                    } else {
+                        data = static_cast<T*>(operator new(sizeof(T) * capacity_));
+                        for (size_t i = 0; i < size_; ++i) {
+                            new (&data[i]) T(other.data[i]);
+                        }
+                    }
+                } else {
+                    data = nullptr;
+                }
+            }
+
+            return *this;
+        }
+
         /**
          * @brief Appends a copy of the given element to the end of the vector.
          *
@@ -358,39 +406,6 @@ namespace zelix::container
         [[nodiscard]] const T* end() const
         {
             return data + size_;
-        }
-
-        /**
-         * @brief Deleted copy constructor.
-         * Prevents copying of vector instances.
-         */
-        vector(const vector&) = delete;
-
-        /**
-         * @brief Deleted copy assignment operator.
-         * Prevents copying of vector instances.
-         */
-        vector& operator=(const vector&) = delete;
-
-        /**
-         * @brief Move constructor.
-         *
-         * Transfers ownership of resources from another vector.
-         *
-         * @param other The vector to move from.
-         */
-        vector(vector&& other) noexcept
-        {
-            this->initialized = other.initialized;
-            this->data = other.data;
-            this->size_ = other.size_;
-            this->capacity_ = other.capacity_;
-
-            // Reset the other vector
-            other.initialized = false;
-            other.data = nullptr;
-            other.size_ = 0;
-            other.capacity_ = 0;
         }
 
         /**
