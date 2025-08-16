@@ -132,6 +132,26 @@ namespace zelix::container
             other.capacity = 0;
         }
 
+        string(const string& other) {
+            len = other.len;
+            max_capacity = other.max_capacity;
+            capacity = other.capacity;
+            heap = new char[capacity];
+            memcpy(heap, other.heap, len);
+        }
+
+        string& operator=(const string& other) {
+            if (this != &other) {
+                delete[] heap;
+                len = other.len;
+                max_capacity = other.max_capacity;
+                capacity = other.capacity;
+                heap = new char[capacity];
+                memcpy(heap, other.heap, len);
+            }
+            return *this;
+        }
+
         /**
          * @brief Returns a pointer to a null-terminated C-style string.
          * @return Pointer to the string data.
