@@ -296,7 +296,7 @@ namespace zelix::container
          */
         ~string()
         {
-            if (!heap)
+            if (heap)
             {
                 delete[] heap; // Free heap memory if allocated
                 heap = nullptr;
