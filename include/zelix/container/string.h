@@ -32,14 +32,14 @@
 namespace zelix::container::str
 {
     /**
- * Checks if the given string `str` starts with the specified `prefix`.
- *
- * \param str     The string to check.
- * \param prefix  The prefix to look for at the start of `str`.
- * \return        TRUE if `str` starts with `prefix`, FALSE otherwise.
- *
- * Returns FALSE if either `str` or `prefix` is NULL.
- */
+     * Checks if the given string `str` starts with the specified `prefix`.
+     *
+     * \param str     The string to check.
+     * \param prefix  The prefix to look for at the start of `str`.
+     * \return        TRUE if `str` starts with `prefix`, FALSE otherwise.
+     *
+     * Returns FALSE if either `str` or `prefix` is NULL.
+     */
     static inline bool has_prefix(
         const char *str,
         const char *prefix
