@@ -35,7 +35,7 @@ namespace zelix::memory
     class resource
     {
     public:
-        static void *allocate(size_t size)///< Allocate memory of given size
+        static void *allocate(size_t size) ///< Allocate memory of given size
         {
             return nullptr;
         }
