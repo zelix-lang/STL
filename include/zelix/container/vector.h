@@ -48,7 +48,7 @@ namespace zelix::container
     template <typename T, double GrowthFactor = 1.8>
     class vector
     {
-        bool initialized; ///< Indicates if the internal storage has been initialized.
+        bool initialized = false; ///< Indicates if the internal storage has been initialized.
         T* data;        ///< Pointer to the internal storage array.
         size_t size_ = 0;         ///< Number of elements currently stored.
         size_t capacity_;    ///< Current capacity of the internal storage.
