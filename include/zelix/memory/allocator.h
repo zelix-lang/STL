@@ -28,31 +28,59 @@
 //
 
 #pragma once
-#include <cstdlib>
-
-
 #include "resource.h"
 
 namespace zelix::memory
 {
-    class allocator final : resource
+    template <typename T>
+    class allocator final : resource<T>
     {
     public:
-        void *allocate(const size_t size) override
+        template <typename... Args>
+        static T *allocate(const size_t size, Args&&... args)
         {
-            return malloc(size);
+            if constexpr (std::is_trivially_copyable_v<T>)
+            {
+                return static_cast<T *>(malloc(sizeof(T)));
+            }
+
+            void* mem = operator new(sizeof(T));
+            // Construct objects in the allocated memory
+            return new (mem) T(container::forward<Args>(args)...);
         }
 
-        void deallocate(void *ptr) override
+        static void deallocate(void *ptr) ///< Deallocate memory at given pointer
         {
-            free(ptr);
+            if constexpr (std::is_trivially_copyable_v<T>)
+            {
+                free(ptr);
+                return;
+            }
+
+            operator delete(ptr);
         }
 
-        void *reallocate(void *ptr, const size_t new_size) override
+        static T *reallocate(void *ptr, const size_t new_siz) ///< Reallocate memory at given pointer to new size
         {
-            return realloc(ptr, new_size);
+            if constexpr (std::is_trivially_copyable_v<T>)
+            {
+                return static_cast<T *>(realloc(ptr, new_siz));
+            }
+
+            // Allocate new memory
+            T *new_ptr = static_cast<T *>(malloc(new_siz));
+            if (new_ptr == nullptr)
+            {
+                return nullptr; // Allocation failed
+            }
+
+            // Copy the old object to the new memory
+            new (new_ptr) T(*static_cast<T *>(ptr));
+
+            // Deallocate the old memory
+            deallocate(ptr);
+
+            return new_ptr;
         }
     };
-
-    inline allocator base_allocator; ///< Global allocator instance
 }
