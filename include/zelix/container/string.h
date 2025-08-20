@@ -27,7 +27,6 @@
 //
 
 #pragma once
-#include <cstdint>
 #if defined(__AVX__) || defined(__AVX2__) || (defined(__has_include) && __has_include(<immintrin.h>))
 #   define ZELIX_STL_AVX_DEF
 #   include <immintrin.h>
@@ -84,54 +83,115 @@ namespace zelix::container::str
     template <bool FallbackLibc=false>
     static inline size_t len(const char *str)
     {
-#       if defined(__SSSE3__)
+#   ifdef ZELIX_STL_AVX_DEF
         const char *s = str;
-        __m128i zero = _mm_setzero_si128();
+        const char *start = str;
 
-        while (1) {
-            // Load 16 bytes from memory
-            __m128i chunk = _mm_loadu_si128((const __m128i *)s);
+        // Load in 32-byte chunks (AVX2 supports this)
+        while (true) {
+            const __m256i chunk = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(s));
 
-            // Compare each byte with 0
-            __m128i cmp = _mm_cmpeq_epi8(chunk, zero);
+            // Compare against zero
+            const __m256i cmp = _mm256_cmpeq_epi8(chunk, _mm256_setzero_si256());
 
-            // Create a bitmask of comparison results
-            int mask = _mm_movemask_epi8(cmp);
+            // Move mask into an int
 
-            if (mask != 0) {
-                // Found a null terminator!
-                int offset = __builtin_ctz(mask);  // position of first set bit
-                return (s - str) + offset;
+            if (
+                const unsigned int mask = _mm256_movemask_epi8(cmp);
+                mask != 0
+            ) {
+                // Found a null terminator
+                const int idx = __builtin_ctz(mask); // index of first zero
+                return s - start + idx;
             }
 
-            s += 16;
+            s += 32;
         }
-#       elif defined(__SSE2__) || defined(_M_X64) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2)
+#   elif defined(ZELIX_STL_SSE4_1_DEF)
         const char *start = str;
-        const __m128i zero = _mm_setzero_si128();
+        __m128i zeros = _mm_setzero_si128();
 
-        // Align pointer until it's 16-byte aligned
-        while ((reinterpret_cast<uintptr_t>(str) & 15) != 0) {
-            if (*str == '\0') return str - start;
+        // Align to 16 bytes
+        while (((uintptr_t)str & 0x0F) != 0) {
+            if (*str == '\0') return (size_t)(str - start);
             str++;
         }
 
-        for (;;)
-        {
-            const __m128i chunk = _mm_load_si128((__m128i *)str); // load 16 bytes
-            const __m128i cmp = _mm_cmpeq_epi8(chunk, zero);   // compare with zero
+        for (;;) {
+            __m128i chunk = _mm_load_si128((const __m128i *)str);
+            __m128i cmp   = _mm_cmpeq_epi8(chunk, zeros);
+            int mask      = _mm_movemask_epi8(cmp);
 
-            if (
-                const int mask = _mm_movemask_epi8(cmp);
-                mask != 0
-            ) {
-                // found a zero somewhere in the chunk
-                return str - start + __builtin_ctz(mask);
+            if (mask != 0) {
+                // Found a zero somewhere in the 16 bytes
+                int offset = __builtin_ctz(mask); // index of first set bit
+                return (size_t)(str - start + offset);
             }
 
-            str += 16; // next chunk
+            str += 16;
         }
-#       else
+#   elif defined(ZELIX_STL_SSSE3_DEF)
+        const char *p = s;
+        __m128i zero = _mm_setzero_si128();
+
+        // scan 16 bytes at a time
+        while (1) {
+            __m128i chunk = _mm_loadu_si128((const __m128i*)p);
+            __m128i cmp   = _mm_cmpeq_epi8(chunk, zero);
+            int mask      = _mm_movemask_epi8(cmp);
+
+            if (mask != 0) {
+                // found a zero byte
+                return (size_t)(p - s) + __builtin_ctz(mask);
+            }
+            p += 16;
+        }
+#   elif defined(ZELIX_STL_SSE2_DEF)
+        const char *s = str;
+        __m128i zero = _mm_setzero_si128();
+
+        // Align to 16 bytes
+        while (((uintptr_t)s & 0x0F) != 0) {
+            if (*s == '\0')
+                return (size_t)(s - str);
+            s++;
+        }
+
+        for (;;) {
+            __m128i chunk = _mm_load_si128((const __m128i *)s);
+            __m128i cmp = _mm_cmpeq_epi8(chunk, zero);
+            int mask = _mm_movemask_epi8(cmp);
+
+            if (mask != 0) {
+                // found a null byte
+                int offset = __builtin_ctz(mask);
+                return (size_t)((s - str) + offset);
+            }
+            s += 16;
+        }
+#   elif defined(ZELIX_STL_SSE_DEF)
+        const char *start = str;
+        // align pointer to 16-byte boundary
+        while (((uintptr_t)str & 15) != 0) {
+            if (*str == '\0')
+                return str - start;
+            str++;
+        }
+
+        // process 16 bytes at a time
+        const __m128i zeros = _mm_setzero_si128();
+        for (;;) {
+            __m128i chunk = _mm_load_si128((const __m128i*)str);
+            __m128i cmp   = _mm_cmpeq_epi8(chunk, zeros);
+            int mask      = _mm_movemask_epi8(cmp);
+
+            if (mask != 0) { // found null terminator
+                int offset = __builtin_ctz(mask);
+                return (str - start) + offset;
+            }
+            str += 16;
+        }
+#   else
         if constexpr (FallbackLibc)
         {
             return strlen(str);
