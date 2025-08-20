@@ -253,7 +253,7 @@ namespace zelix::container
 
         void push(const char *c)
         {
-            push(c, strlen(c)); // Push with length
+            push(c, str::len(c)); // Push with length
         }
 
         /**
@@ -281,7 +281,7 @@ namespace zelix::container
          */
         string_utils operator+(const char* other)
         const {
-            const size_t other_len = strlen(other);
+            const size_t other_len = str::len(other);
             string_utils result;
             result.reserve(len + other_len);
             if (heap != nullptr)
@@ -301,7 +301,7 @@ namespace zelix::container
 
         bool operator==(const char *other) const
         {
-            if (len != strlen(other)) return false;
+            if (len != str::len(other)) return false;
             return memcmp(ptr(), other, len) == 0;
         }
 
@@ -366,7 +366,7 @@ namespace zelix::container
 
         size_t operator()(const char* c_str) const
         {
-            const size_t len = strlen(c_str);
+            const size_t len = str::len(c_str);
             return XXH64(c_str, len, len);
         }
     };
