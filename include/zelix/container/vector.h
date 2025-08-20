@@ -33,6 +33,7 @@
 #include "move.h"
 #include "optional.h"
 #include "zelix/except/exception.h"
+#include "zelix/memory/resource.h"
 
 namespace zelix::container
 {
@@ -44,8 +45,16 @@ namespace zelix::container
      *
      * @tparam T Type of elements stored.
      * @tparam GrowthFactor Factor by which the capacity grows
+     * @tparam Allocator Memory allocator to use for storage.
      */
-    template <typename T, double GrowthFactor = 1.8>
+    template <
+        typename T,
+        double GrowthFactor = 1.8,
+        typename Allocator = memory::resource<T>,
+        typename = std::enable_if_t<
+            std::is_base_of_v<memory::resource<T>, Allocator>
+        >
+    >
     class vector
     {
         bool initialized = false; ///< Indicates if the internal storage has been initialized.
@@ -61,18 +70,7 @@ namespace zelix::container
         {
             initialized = true;
             capacity_ = 32;
-
-            // Trivial-copyable optimization
-            if constexpr (std::is_trivially_copyable_v<T>)
-            {
-                // Use malloc directly
-                data = static_cast<T*>(malloc(sizeof(T) * capacity_));
-            }
-            else
-            {
-                // Use operator new to allocate raw memory
-                data = static_cast<T*>(operator new(sizeof(T) * capacity_));
-            }
+            data = Allocator::arr(capacity_);
         }
 
         /**
@@ -82,7 +80,6 @@ namespace zelix::container
          */
         void resize(const size_t new_size)
         {
-
             // Trivial-copyable optimization
             if constexpr (std::is_trivially_copyable_v<T>)
             {
@@ -121,20 +118,15 @@ namespace zelix::container
             if (initialized)
             {
                 // Trivial-copyable optimization
-                if constexpr (std::is_trivially_copyable_v<T>)
-                {
-                    // Use free for trivial types
-                    free(data);
-                }
-                else
+                if constexpr (!std::is_trivially_copyable_v<T>)
                 {
                     for (size_t i = 0; i < size_; ++i)
                     {
                         data[i].~T(); // Call destructor for each element
                     }
-
-                    operator delete(data);
                 }
+
+                Allocator::deallocate(data); // Deallocate memory
             }
         }
     public:
@@ -173,23 +165,32 @@ namespace zelix::container
             other.capacity_ = 0;
         }
 
-        vector& operator=(const vector& other) {
-            if (this != &other) {
+        vector& operator=(const vector& other)
+        {
+            if (this != &other)
+            {
                 destroy();
                 initialized = other.initialized;
                 size_ = other.size_;
                 capacity_ = other.capacity_;
-                if (other.data) {
-                    if constexpr (std::is_trivially_copyable_v<T>) {
-                        data = static_cast<T*>(malloc(sizeof(T) * capacity_));
+
+                if (other.data)
+                {
+                    data = Allocator::arr(capacity_);
+                    if constexpr (std::is_trivially_copyable_v<T>)
+                    {
                         memcpy(data, other.data, sizeof(T) * size_);
-                    } else {
-                        data = static_cast<T*>(operator new(sizeof(T) * capacity_));
-                        for (size_t i = 0; i < size_; ++i) {
+                    }
+                    else
+                    {
+                        for (size_t i = 0; i < size_; ++i)
+                        {
                             new (&data[i]) T(other.data[i]);
                         }
                     }
-                } else {
+                }
+                else
+                {
                     data = nullptr;
                 }
             }
@@ -248,10 +249,10 @@ namespace zelix::container
         }
 
         /**
-                 * @brief Appends a copy of the given element to the end of the vector.
-                 *
-                 * @param value Element to append.
-                 */
+            * @brief Appends a copy of the given element to the end of the vector.
+            *
+            * @param value Element to append.
+        */
         void push_back(const T &value)
         {
 #           if defined(__GNUC__) || defined(__clang__)
