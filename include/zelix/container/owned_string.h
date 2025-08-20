@@ -355,14 +355,13 @@ namespace zelix::container
         };
     }
 
-    template <double GrowthFactor = 1.8>
-    using string = pmr::string<GrowthFactor, memory::resource<char>>;
+    using string = pmr::string<>;
 
     struct string_hash
     {
         using is_transparent = void;
 
-        size_t operator()(const string<> &str) const
+        size_t operator()(const string &str) const
         {
             // Use xxHash
             return XXH3_64bits(str.ptr(), str.size());
