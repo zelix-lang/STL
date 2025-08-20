@@ -96,7 +96,7 @@ namespace zelix::container
                     return;
                 }
 
-                T* new_data = static_cast<T*>(operator new(sizeof(T) * new_size));
+                T* new_data = Allocator::arr(new_size);
 
                 // Move existing elements to new storage
                 for (size_t i = 0; i < size_; ++i)
@@ -105,7 +105,7 @@ namespace zelix::container
                     data[i].~T(); // Call destructor for old element
                 }
 
-                operator delete(data);
+                Allocator::deallocate(data); // Deallocate old memory
                 data = new_data;
                 capacity_ = new_size;
             }
