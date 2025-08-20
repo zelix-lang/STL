@@ -35,7 +35,7 @@
 namespace zelix::container
 {
     /**
-     * @brief A owned string class.
+     * @brief An owned string class.
      *
      * Provides basic push and reserve operations, and exposes a C-style string interface.
      */
