@@ -38,7 +38,7 @@ namespace zelix::memory
     class resource
     {
     public:
-        static T *allocate(const size_t len = 10) ///< Allocate memory of given size
+        static T *arr(const size_t len = 10) ///< Allocate memory of given size
         {
             // Allocate directly for trivially copyable types
             if constexpr (std::is_trivially_copyable_v<T>)
