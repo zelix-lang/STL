@@ -28,6 +28,10 @@
 
 #pragma once
 #include <cstddef>
+#include <cstdint>
+#if defined(__SSE2__) || defined(_M_X64) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2)
+#  include <emmintrin.h>
+#endif
 
 namespace zelix::container::str
 {
@@ -63,5 +67,52 @@ namespace zelix::container::str
 
         // If we reached here, the prefix matches the start of the string
         return true; // Return true
+    }
+
+    template <bool FallbackLibc=false>
+    static inline size_t len(const char *str)
+    {
+#       if defined(__SSE2__) || defined(_M_X64) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2)
+        const char *start = str;
+        const __m128i zero = _mm_setzero_si128();
+
+        // Align pointer until it's 16-byte aligned
+        while ((reinterpret_cast<uintptr_t>(str) & 15) != 0) {
+            if (*str == '\0') return str - start;
+            str++;
+        }
+
+        for (;;)
+        {
+            const __m128i chunk = _mm_load_si128((__m128i *)str); // load 16 bytes
+            const __m128i cmp = _mm_cmpeq_epi8(chunk, zero);   // compare with zero
+
+            if (
+                const int mask = _mm_movemask_epi8(cmp);
+                mask != 0
+            ) {
+                // found a zero somewhere in the chunk
+                return str - start + __builtin_ctz(mask);
+            }
+
+            str += 16; // next chunk
+        }
+#       else
+        if constexpr (FallbackLibc)
+        {
+            return strlen(str);
+        }
+        else
+        {
+            const char *s = str;
+            const char *start = s;
+
+            while (*s) {
+                s++;
+            }
+
+            return s - start;
+        }
+#       endif
     }
 }
