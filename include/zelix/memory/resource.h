@@ -36,8 +36,8 @@ namespace zelix::memory
     {
     public:
         virtual ~resource();
-        virtual void * allocate(size_t size) = 0; ///< Allocate memory of given size
-        virtual void deallocate(void *ptr) = 0; ///< Deallocate memory at given pointer
-        virtual void * reallocate(void *ptr, size_t new_size) = 0; ///< Reallocate memory at given pointer to new size
+        virtual void * allocate(size_t size); ///< Allocate memory of given size
+        virtual void deallocate(void *ptr); ///< Deallocate memory at given pointer
+        virtual void * reallocate(void *ptr, size_t new_siz); ///< Reallocate memory at given pointer to new size
     };
 }
