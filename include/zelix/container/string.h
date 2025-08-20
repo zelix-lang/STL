@@ -30,7 +30,7 @@
 #include <cstddef>
 #include <cstdint>
 #if defined(__SSE2__) || defined(_M_X64) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2)
-#  include <emmintrin.h>
+#   include <emmintrin.h>
 #endif
 
 namespace zelix::container::str
