@@ -36,18 +36,18 @@ namespace zelix::container
     struct string_equal {
         using is_transparent = void;
 
-        bool operator()(string_utils const& lhs, string_utils const& rhs) const noexcept
+        bool operator()(string const& lhs, string const& rhs) const noexcept
         {
             return lhs == rhs;
         }
 
-        bool operator()(external_string const& lhs, string_utils const& rhs) const noexcept
+        bool operator()(external_string const& lhs, string const& rhs) const noexcept
         {
             return lhs.size() == rhs.size() &&
                    memcmp(lhs.ptr(), rhs.ptr(), lhs.size()) == 0;
         }
 
-        bool operator()(string_utils const& lhs, external_string const& rhs) const noexcept
+        bool operator()(string const& lhs, external_string const& rhs) const noexcept
         {
             return lhs.size() == rhs.size() &&
                    memcmp(lhs.ptr(), rhs.ptr(), lhs.size()) == 0;
