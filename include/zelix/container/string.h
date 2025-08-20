@@ -27,10 +27,17 @@
 //
 
 #pragma once
-#include <cstddef>
 #include <cstdint>
-#if defined(__SSE2__) || defined(_M_X64) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2)
+#if defined(__AVX__) || defined(__AVX2__) || (defined(__has_include) && __has_include(<immintrin.h>))
+#   include <immintrin.h>
+#elif defined(__SSE4_1__) || (defined(__has_include) && __has_include(<smmintrin.h>))
+#   include <smmintrin.h>
+#elif defined(__SSSE3__) || (defined(__has_include) && __has_include(<tmmintrin.h>))
+#   include <tmmintrin.h>
+#elif defined(__SSE2__) || defined(_M_X64) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2) || (defined(__has_include) && __has_include(<emmintrin.h>))
 #   include <emmintrin.h>
+#elif defined(__SSE__) || (defined(__has_include) && __has_include(<xmmintrin.h>))
+#   include <xmmintrin.h>
 #endif
 
 namespace zelix::container::str
@@ -72,7 +79,29 @@ namespace zelix::container::str
     template <bool FallbackLibc=false>
     static inline size_t len(const char *str)
     {
-#       if defined(__SSE2__) || defined(_M_X64) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2)
+#       if defined(__SSSE3__)
+        const char *s = str;
+        __m128i zero = _mm_setzero_si128();
+
+        while (1) {
+            // Load 16 bytes from memory
+            __m128i chunk = _mm_loadu_si128((const __m128i *)s);
+
+            // Compare each byte with 0
+            __m128i cmp = _mm_cmpeq_epi8(chunk, zero);
+
+            // Create a bitmask of comparison results
+            int mask = _mm_movemask_epi8(cmp);
+
+            if (mask != 0) {
+                // Found a null terminator!
+                int offset = __builtin_ctz(mask);  // position of first set bit
+                return (s - str) + offset;
+            }
+
+            s += 16;
+        }
+#       elif defined(__SSE2__) || defined(_M_X64) || (defined(_M_IX86_FP) && _M_IX86_FP >= 2)
         const char *start = str;
         const __m128i zero = _mm_setzero_si128();
 
