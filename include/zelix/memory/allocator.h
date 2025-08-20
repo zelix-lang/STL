@@ -37,6 +37,7 @@ namespace zelix::memory
 {
     class allocator final : resource
     {
+    public:
         void *allocate(const size_t size) override
         {
             return malloc(size);
