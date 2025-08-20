@@ -45,6 +45,18 @@ namespace zelix::container
         explicit stream(vector<T>&& data) :
             data_(container::move(data)) {}
 
+        /**
+         * @brief Constructs an element in-place at the end of the vector.
+         *
+         * @tparam Args Argument types for T's constructor.
+         * @param args Arguments to forward to T's constructor.
+         */
+        template <typename... Args>
+        void emplace_back(Args&&... args)
+        {
+            data_.emplace_back(container::forward<Args>(args)...);
+        }
+
         void push(const T &value)
         {
             data_.push_back(value); ///< Add a new value to the stream
