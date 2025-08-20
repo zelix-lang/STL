@@ -28,24 +28,54 @@
 //
 
 #pragma once
-#include <cstddef>
+#include <type_traits>
+#include <cstdlib>
+#include "zelix/container/forward.h"
 
 namespace zelix::memory
 {
+    template <typename T>
     class resource
     {
     public:
-        static void *allocate(size_t size) ///< Allocate memory of given size
+        static T *allocate(const size_t len = 10) ///< Allocate memory of given size
         {
-            return nullptr;
+            // Allocate directly for trivially copyable types
+            if constexpr (std::is_trivially_copyable_v<T>)
+            {
+                return malloc(len * sizeof(T));
+            }
+
+            // Allocate memory and construct the object
+            return operator new(len * sizeof(T));
         }
 
-        static void deallocate(void *ptr) ///< Deallocate memory at given pointer
-        {}
-
-        static void *reallocate(void *ptr, size_t new_size) ///< Reallocate memory at given pointer to new size
+        template <typename... Args>
+        static T *allocate(Args&&... args) ///< Allocate memory of given size
         {
-            return nullptr;
+            // Allocate directly for trivially copyable types
+            if constexpr (std::is_trivially_copyable_v<T>)
+            {
+                return malloc(sizeof(T));
+            }
+
+            // Allocate memory and construct the object
+            void *mem = operator new(sizeof(T));
+            return new (mem) T(container::forward<Args>(args)...);
+        }
+
+        static void deallocate(T *ptr) ///< Deallocate memory at given pointer
+        {
+            if constexpr (std::is_trivially_destructible_v<T>)
+            {
+                // Free the pointer directly
+                free(ptr);
+                return;
+            }
+
+            // Call the destructor for non-trivially destructible types
+            ptr->~T();
+            operator delete(ptr);
         }
     };
 }
