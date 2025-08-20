@@ -50,6 +50,34 @@ namespace zelix::memory
             return operator new(len * sizeof(T));
         }
 
+        static T *reallocate(T *ptr, const size_t old_len, const size_t new_len)
+        {
+            // Trivial-copyable optimization
+            if constexpr (std::is_trivially_copyable_v<T>)
+            {
+                T* new_data = static_cast<T*>(realloc(ptr, sizeof(T) * new_len));
+                if (!new_data)
+                {
+                    deallocate(ptr);
+                    throw except::exception("Memory allocation failed");
+                }
+
+                return new_data;
+            }
+
+            T* new_data = arr(new_len);
+
+            // Move existing elements to new storage
+            for (size_t i = 0; i < old_len; ++i)
+            {
+                new (&new_data[i]) T(container::move(ptr[i]));
+                ptr[i].~T(); // Call destructor for old element
+            }
+
+            deallocate(ptr); // Deallocate old memory
+            return new_data;
+        }
+
         template <typename... Args>
         static T *allocate(Args&&... args) ///< Allocate memory of given size
         {
