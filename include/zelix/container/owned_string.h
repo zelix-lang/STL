@@ -136,7 +136,6 @@ namespace zelix::container
 
         string(const string& other)
         {
-            reserve(other.len);
             len = other.len;
             max_capacity = other.max_capacity;
             capacity = other.capacity;
