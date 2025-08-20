@@ -28,6 +28,7 @@
 //
 
 #pragma once
+#include "string_utils.h"
 #include <cstring>
 #include <xxh3.h>
 #include "zelix/except/exception.h"
@@ -59,8 +60,8 @@ namespace zelix::container
             }
         }
 
-        explicit external_string(const char* str)
-            : buffer(str), len(strlen(str))
+        explicit external_string(const char* s)
+            : buffer(s), len(str::len(s))
         {}
 
         bool operator==(const external_string &other) const
@@ -110,7 +111,7 @@ namespace zelix::container
 
         size_t operator()(const char* c_str) const
         {
-            const size_t len = strlen(c_str);
+            const size_t len = str::len(c_str);
             return XXH64(c_str, len, len);
         }
     };
