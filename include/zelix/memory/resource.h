@@ -43,11 +43,11 @@ namespace zelix::memory
             // Allocate directly for trivially copyable types
             if constexpr (std::is_trivially_copyable_v<T>)
             {
-                return malloc(len * sizeof(T));
+                return static_cast<T *>(malloc(len * sizeof(T)));
             }
 
             // Allocate memory and construct the object
-            return operator new(len * sizeof(T));
+            return static_cast<T *>(operator new(len * sizeof(T)));
         }
 
         static T *reallocate(T *ptr, const size_t old_len, const size_t new_len)
@@ -84,7 +84,7 @@ namespace zelix::memory
             // Allocate directly for trivially copyable types
             if constexpr (std::is_trivially_copyable_v<T>)
             {
-                return malloc(sizeof(T));
+                return static_cast<T *>(malloc(sizeof(T)));
             }
 
             // Allocate memory and construct the object
