@@ -31,7 +31,7 @@
 #include <cstring>
 #include <xxh3.h>
 #include "external_string.h"
-#include "string.h"
+#include "string_utils.h"
 
 namespace zelix::container
 {
@@ -40,7 +40,7 @@ namespace zelix::container
      *
      * Provides basic push and reserve operations, and exposes a C-style string interface.
      */
-    class string
+    class string_utils
     {
         char* heap = nullptr; ///< Pointer to heap-allocated string for larger strings
         size_t len = 0; ///< Length of the string
@@ -80,7 +80,7 @@ namespace zelix::container
         /**
          * @brief Default constructor. Initializes an empty string using stack memory.
          */
-        explicit string()
+        explicit string_utils()
         {
             // Do not initialize memory right awa
         }
@@ -91,7 +91,7 @@ namespace zelix::container
          *
          * Uses stack memory if capacity is small, otherwise allocates on the heap.
          */
-        explicit string(const size_t capacity)
+        explicit string_utils(const size_t capacity)
         {
             reserve(capacity);
         }
@@ -103,7 +103,7 @@ namespace zelix::container
          *
          * Uses stack memory if the capacity is small enough, otherwise allocates on the heap.
          */
-        explicit string(const char *str, const size_t s_len)
+        explicit string_utils(const char *str, const size_t s_len)
         {
             reserve(s_len);
             memcpy(heap, str, s_len);
@@ -116,7 +116,7 @@ namespace zelix::container
          *
          * Uses stack memory if the string is small enough, otherwise allocates on the heap.
          */
-        explicit string(const char *s)
+        explicit string_utils(const char *s)
         {
             const auto s_len = str::len(s); // Get the length of the string
 
@@ -126,7 +126,7 @@ namespace zelix::container
             len = s_len; // Set the length of the string
         }
 
-        string(string && other) noexcept
+        string_utils(string_utils && other) noexcept
             : heap(other.heap), len(other.len), max_capacity(other.max_capacity), capacity(other.capacity)
         {
             other.heap = nullptr; // Transfer ownership, set other's heap to nullptr
@@ -135,7 +135,7 @@ namespace zelix::container
             other.capacity = 0;
         }
 
-        string(const string& other)
+        string_utils(const string_utils& other)
         {
             len = other.len;
             max_capacity = other.max_capacity;
@@ -144,7 +144,7 @@ namespace zelix::container
             memcpy(heap, other.heap, len);
         }
 
-        string& operator=(const string& other)
+        string_utils& operator=(const string_utils& other)
         {
             if (this != &other) {
                 delete[] heap;
@@ -259,9 +259,9 @@ namespace zelix::container
         /**
          * @brief Concatenation operator for string + string.
          */
-        string operator+(const string & other) const
+        string_utils operator+(const string_utils & other) const
         {
-            string result;
+            string_utils result;
             result.reserve(len + other.len);
             if (heap != nullptr)
             {
@@ -279,10 +279,10 @@ namespace zelix::container
         /**
          * @brief Concatenation operator for string + const char*.
          */
-        string operator+(const char* other)
+        string_utils operator+(const char* other)
         const {
             const size_t other_len = strlen(other);
-            string result;
+            string_utils result;
             result.reserve(len + other_len);
             if (heap != nullptr)
             {
@@ -293,7 +293,7 @@ namespace zelix::container
             return result;
         }
 
-        bool operator==(const string& other) const
+        bool operator==(const string_utils& other) const
         {
             if (len != other.len) return false;
             return memcmp(ptr(), other.ptr(), len) == 0;
@@ -325,9 +325,9 @@ namespace zelix::container
          * @param buf_len Length of the buffer.
          * @return string referencing the external buffer.
          */
-        static string no_copy(const char *buf, const size_t buf_len)
+        static string_utils no_copy(const char *buf, const size_t buf_len)
         {
-            string str;
+            string_utils str;
             str.heap = const_cast<char*>(buf); // Use the provided buffer directly
             str.len = buf_len;
             str.capacity = buf_len + 1; // Set capacity to length + null terminator
@@ -338,7 +338,7 @@ namespace zelix::container
         /**
          * @brief Destructor. Releases heap memory if allocated.
          */
-        ~string()
+        ~string_utils()
         {
             if (heap)
             {
@@ -352,7 +352,7 @@ namespace zelix::container
     {
         using is_transparent = void;
 
-        size_t operator()(const string &str) const
+        size_t operator()(const string_utils &str) const
         {
             // Use xxHash
             return XXH3_64bits(str.ptr(), str.size());
