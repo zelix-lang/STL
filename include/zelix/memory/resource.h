@@ -32,20 +32,18 @@
 
 namespace zelix::memory
 {
-    template <typename T>
     class resource
     {
     public:
-        template <typename... Args>
-        static T *allocate(size_t size, Args&&...)///< Allocate memory of given size
+        static void *allocate(size_t size)///< Allocate memory of given size
         {
             return nullptr;
         }
 
-        static void deallocate(T *ptr) ///< Deallocate memory at given pointer
+        static void deallocate(void *ptr) ///< Deallocate memory at given pointer
         {}
 
-        static T *reallocate(T *ptr, size_t new_size) ///< Reallocate memory at given pointer to new size
+        static void *reallocate(void *ptr, size_t new_size) ///< Reallocate memory at given pointer to new size
         {
             return nullptr;
         }
