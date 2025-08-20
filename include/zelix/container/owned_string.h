@@ -81,7 +81,7 @@ namespace zelix::container
          */
         explicit string()
         {
-            // Do not initialize memory right away
+            // Do not initialize memory right awa
         }
 
         /**
