@@ -81,8 +81,7 @@ namespace zelix::container
          */
         explicit string()
         {
-            capacity = 12;
-            heap_init();
+            // Do not initialize memory right away
         }
 
         /**
@@ -93,8 +92,7 @@ namespace zelix::container
          */
         explicit string(const size_t capacity)
         {
-            this->capacity = capacity;
-            heap_init(); // Initialize heap buffer
+            reserve(capacity);
         }
 
         /**
