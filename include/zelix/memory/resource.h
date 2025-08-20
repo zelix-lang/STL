@@ -31,6 +31,7 @@
 #include <type_traits>
 #include <cstdlib>
 #include "zelix/container/forward.h"
+#include "zelix/container/move.h"
 
 namespace zelix::memory
 {
