@@ -31,7 +31,6 @@
 #include <cstdlib>
 #include <type_traits>
 #include "move.h"
-#include "optional.h"
 #include "zelix/except/exception.h"
 #include "zelix/memory/resource.h"
 
