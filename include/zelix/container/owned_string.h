@@ -31,6 +31,7 @@
 #include <cstring>
 #include <xxh3.h>
 #include "external_string.h"
+#include "string.h"
 
 namespace zelix::container
 {
@@ -111,17 +112,17 @@ namespace zelix::container
 
         /**
          * @brief Constructs a string from a null-terminated C-style string.
-         * @param str Pointer to the null-terminated character array to copy from.
+         * @param s Pointer to the null-terminated character array to copy from.
          *
          * Uses stack memory if the string is small enough, otherwise allocates on the heap.
          */
-        explicit string(const char *str)
+        explicit string(const char *s)
         {
-            const auto s_len = strlen(str); // Get the length of the string
+            const auto s_len = str::len(s); // Get the length of the string
 
             this->capacity = s_len;
             heap_init(); // Initialize heap buffer
-            memcpy(heap, str, s_len);
+            memcpy(heap, s, s_len);
             len = s_len; // Set the length of the string
         }
 
