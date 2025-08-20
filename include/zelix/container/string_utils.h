@@ -27,30 +27,30 @@
 //
 
 #pragma once
-#if defined(ZELIX_STL_USE_SIMD) && \
+#if defined(ZELIX_STL_USE_SIMD) && (\
     defined(__AVX__) || defined(__AVX2__) || \
-    (defined(__has_include) && __has_include(<immintrin.h>))
+    (defined(__has_include) && __has_include(<immintrin.h>)))
 #   define ZELIX_STL_AVX_DEF
 #   include <immintrin.h>
-#elif defined(ZELIX_STL_USE_SIMD) && \
+#elif defined(ZELIX_STL_USE_SIMD) && (\
     defined(__SSE4_1__) || (defined(__has_include) \
-    && __has_include(<smmintrin.h>))
+    && __has_include(<smmintrin.h>)))
 #   define ZELIX_STL_SSE4_1_DEF
 #   include <smmintrin.h>
-#elif defined(ZELIX_STL_USE_SIMD) \
+#elif defined(ZELIX_STL_USE_SIMD) && (\
     defined(__SSSE3__) || (defined(__has_include) \
-    && __has_include(<tmmintrin.h>))
+    && __has_include(<tmmintrin.h>)))
 #   define ZELIX_STL_SSSE3_DEF
 #   include <tmmintrin.h>
-#elif defined(ZELIX_STL_USE_SIMD) \
+#elif defined(ZELIX_STL_USE_SIMD) && (\
     defined(__SSE2__) || defined(_M_X64) || \
     (defined(_M_IX86_FP) && _M_IX86_FP >= 2) || \
-    (defined(__has_include) && __has_include(<emmintrin.h>))
+    (defined(__has_include) && __has_include(<emmintrin.h>)))
 #   define ZELIX_STL_SSE2_DEF
 #   include <emmintrin.h>
-#elif defined(ZELIX_STL_USE_SIMD) \
+#elif defined(ZELIX_STL_USE_SIMD) && (\
     defined(__SSE__) || \
-    (defined(__has_include) && __has_include(<xmmintrin.h>))
+    (defined(__has_include) && __has_include(<xmmintrin.h>)))
 #   define ZELIX_STL_SSE_DEF
 #   include <xmmintrin.h>
 #else
