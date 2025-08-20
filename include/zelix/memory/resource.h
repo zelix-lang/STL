@@ -42,10 +42,10 @@ namespace zelix::memory
             return nullptr;
         }
 
-        static void deallocate(void *ptr) ///< Deallocate memory at given pointer
+        static void deallocate(T *ptr) ///< Deallocate memory at given pointer
         {}
 
-        static T *reallocate(void *ptr, size_t new_size) ///< Reallocate memory at given pointer to new size
+        static T *reallocate(T *ptr, size_t new_size) ///< Reallocate memory at given pointer to new size
         {
             return nullptr;
         }
