@@ -362,7 +362,7 @@ namespace zelix::container
     {
         using is_transparent = void;
 
-        size_t operator()(const string &str) const
+        size_t operator()(const string<> &str) const
         {
             // Use xxHash
             return XXH3_64bits(str.ptr(), str.size());
