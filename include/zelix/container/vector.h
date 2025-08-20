@@ -102,7 +102,7 @@ namespace zelix::container
                         }
                     }
 
-                    Allocator::deallocate(data); // Deallocate memory
+                    Allocator::deallocate<false>(data); // Deallocate memory
                 }
             }
         public:
