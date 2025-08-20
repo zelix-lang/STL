@@ -32,321 +32,331 @@
 #include <xxh3.h>
 #include "external_string.h"
 #include "string_utils.h"
+#include "zelix/memory/resource.h"
 
 namespace zelix::container
 {
-    /**
-     * @brief An owned string class.
-     *
-     * Provides basic push and reserve operations, and exposes a C-style string interface.
-     */
-    class string
+    namespace pmr
     {
-        char* heap = nullptr; ///< Pointer to heap-allocated string for larger strings
-        size_t len = 0; ///< Length of the string
-        size_t max_capacity = 0; ///< Maximum capacity of the stack buffer, -1 for null terminator
-        size_t capacity = 0; ///< Capacity of the string
-        double growth_factor = 1.8; ///< Growth factor for heap allocation
-
         /**
-         * @brief Initializes the heap-allocated buffer and copies stack data.
+         * @brief An owned string class.
          *
-         * Called when the string grows beyond the stack buffer.
+         * Provides basic push and reserve operations, and exposes a C-style string interface.
          */
-        void heap_init()
+        template <
+            double GrowthFactor = 1.8,
+            typename Allocator = memory::resource<char>,
+            typename = std::enable_if_t<
+                std::is_base_of_v<memory::resource<char>, Allocator>
+            >
+        >
+        class string
         {
-            // Initialize the heap-allocated string if needed
-            max_capacity = static_cast<size_t>(capacity * growth_factor - 1); // Adjust max capacity based on growth factor
-            capacity = max_capacity + 1;
-            heap = new char[capacity];
-        }
+            char* heap = nullptr; ///< Pointer to heap-allocated string for larger strings
+            size_t len = 0; ///< Length of the string
+            size_t max_capacity = 0; ///< Maximum capacity of the stack buffer, -1 for null terminator
+            size_t capacity = 0; ///< Capacity of the string
 
-        /**
-         * @brief Reallocates the heap buffer to a larger size.
-         *
-         * Copies existing heap data to the new buffer and updates capacity.
-         */
-        void reallocate()
-        {
-            // Initialize the heap-allocated string if needed
-            capacity = max_capacity + 1;
-            const auto new_heap = new char[capacity];
-            memcpy(new_heap, heap, len); // Copy existing data to new heap
-            delete[] heap; // Free old heap memory
-            heap = new_heap; // Update heap pointer
-        }
+            /**
+             * @brief Initializes the heap-allocated buffer and copies stack data.
+             *
+             * Called when the string grows beyond the stack buffer.
+             */
+            void heap_init()
+            {
+                // Initialize the heap-allocated string if needed
+                max_capacity = static_cast<size_t>(capacity * GrowthFactor - 1); // Adjust max capacity based on growth factor
+                capacity = max_capacity + 1;
+                heap = Allocator::arr(capacity);
+            }
 
-    public:
-        /**
-         * @brief Default constructor. Initializes an empty string using stack memory.
-         */
-        explicit string()
-        {
-            // Do not initialize memory right away
-        }
+            /**
+             * @brief Reallocates the heap buffer to a larger size.
+             *
+             * Copies existing heap data to the new buffer and updates capacity.
+             */
+            void reallocate()
+            {
+                // Initialize the heap-allocated string if needed
+                capacity = max_capacity + 1;
+                heap = Allocator::reallocate(heap, len, capacity);
+            }
 
-        /**
-         * @brief Constructs a string with a specified capacity.
-         * @param capacity The initial capacity to reserve.
-         *
-         * Uses stack memory if capacity is small, otherwise allocates on the heap.
-         */
-        explicit string(const size_t capacity)
-        {
-            reserve(capacity);
-        }
+        public:
+            /**
+             * @brief Default constructor. Initializes an empty string using stack memory.
+             */
+            explicit string()
+            {
+                // Do not initialize memory right away
+            }
 
-        /**
-         * @brief Constructs a string from a C-style string with a specified capacity.
-         * @param str Pointer to the character array to copy from.
-         * @param s_len The number of characters to copy.
-         *
-         * Uses stack memory if the capacity is small enough, otherwise allocates on the heap.
-         */
-        explicit string(const char *str, const size_t s_len)
-        {
-            reserve(s_len);
-            memcpy(heap, str, s_len);
-            len = s_len; // Set the length of the string
-        }
+            /**
+             * @brief Constructs a string with a specified capacity.
+             * @param capacity The initial capacity to reserve.
+             *
+             * Uses stack memory if capacity is small, otherwise allocates on the heap.
+             */
+            explicit string(const size_t capacity)
+            {
+                reserve(capacity);
+            }
 
-        /**
-         * @brief Constructs a string from a null-terminated C-style string.
-         * @param s Pointer to the null-terminated character array to copy from.
-         *
-         * Uses stack memory if the string is small enough, otherwise allocates on the heap.
-         */
-        explicit string(const char *s)
-        {
-            const auto s_len = str::len(s); // Get the length of the string
+            /**
+             * @brief Constructs a string from a C-style string with a specified capacity.
+             * @param str Pointer to the character array to copy from.
+             * @param s_len The number of characters to copy.
+             *
+             * Uses stack memory if the capacity is small enough, otherwise allocates on the heap.
+             */
+            explicit string(const char *str, const size_t s_len)
+            {
+                reserve(s_len);
+                memcpy(heap, str, s_len);
+                len = s_len; // Set the length of the string
+            }
 
-            this->capacity = s_len;
-            heap_init(); // Initialize heap buffer
-            memcpy(heap, s, s_len);
-            len = s_len; // Set the length of the string
-        }
+            /**
+             * @brief Constructs a string from a null-terminated C-style string.
+             * @param s Pointer to the null-terminated character array to copy from.
+             *
+             * Uses stack memory if the string is small enough, otherwise allocates on the heap.
+             */
+            explicit string(const char *s)
+            {
+                const auto s_len = str::len(s); // Get the length of the string
 
-        string(string &&other) noexcept
-            : heap(other.heap), len(other.len), max_capacity(other.max_capacity), capacity(other.capacity)
-        {
-            other.heap = nullptr; // Transfer ownership, set other's heap to nullptr
-            other.len = 0;
-            other.max_capacity = 0;
-            other.capacity = 0;
-        }
+                this->capacity = s_len;
+                heap_init(); // Initialize heap buffer
+                memcpy(heap, s, s_len);
+                len = s_len; // Set the length of the string
+            }
 
-        string(const string& other)
-        {
-            len = other.len;
-            max_capacity = other.max_capacity;
-            capacity = other.capacity;
-            heap = new char[capacity];
-            memcpy(heap, other.heap, len);
-        }
+            string(string &&other) noexcept
+                : heap(other.heap), len(other.len), max_capacity(other.max_capacity), capacity(other.capacity)
+            {
+                other.heap = nullptr; // Transfer ownership, set other's heap to nullptr
+                other.len = 0;
+                other.max_capacity = 0;
+                other.capacity = 0;
+            }
 
-        string& operator=(const string& other)
-        {
-            if (this != &other) {
-                delete[] heap;
+            string(const string& other)
+            {
                 len = other.len;
                 max_capacity = other.max_capacity;
                 capacity = other.capacity;
                 heap = new char[capacity];
                 memcpy(heap, other.heap, len);
             }
-            return *this;
-        }
 
-        /**
-         * @brief Returns a pointer to a null-terminated C-style string.
-         * @return Pointer to the string data.
-         *
-         * Ensures the string is null-terminated before returning.
-         */
-        [[nodiscard]] char *c_str() const
-        {
-            if (heap)
+            string& operator=(const string& other)
             {
-                heap[len] = '\0'; // Ensure null termination for heap memory
-                return heap;
+                if (this != &other) {
+                    delete[] heap;
+                    len = other.len;
+                    max_capacity = other.max_capacity;
+                    capacity = other.capacity;
+                    heap = new char[capacity];
+                    memcpy(heap, other.heap, len);
+                }
+                return *this;
             }
 
-            return nullptr; // Return nullptr if no memory is allocated
-        }
-
-        [[nodiscard]] const char *ptr()
-        const
-        {
-            return heap; // Return heap memory pointer
-        }
-
-        /**
-         * @brief Ensures the string has enough capacity for additional data.
-         * @param required The additional capacity to reserve.
-         *
-         * Switches to heap memory or grows the heap buffer if needed.
-         */
-        void reserve_growth(const size_t required)
-        {
-            if (heap == nullptr)
+            /**
+             * @brief Returns a pointer to a null-terminated C-style string.
+             * @return Pointer to the string data.
+             *
+             * Ensures the string is null-terminated before returning.
+             */
+            [[nodiscard]] char *c_str() const
             {
-                capacity = required + 1;
-                heap = new char[capacity];
-                max_capacity = required;
-                return;
-            }
-
-            if (len + required > max_capacity)
-            {
-                // Check if we need to grow the heap memory
-                auto new_capacity = static_cast<size_t>(capacity * growth_factor);
-                const size_t count_to = len + required;
-
-                while (new_capacity < count_to)
+                if (heap)
                 {
-                    new_capacity *= growth_factor; // Increase capacity by growth factor
+                    heap[len] = '\0'; // Ensure null termination for heap memory
+                    return heap;
                 }
 
-                max_capacity = new_capacity;
-                reallocate();
+                return nullptr; // Return nullptr if no memory is allocated
             }
-        }
 
-        void reserve(const size_t required)
-        {
-            if (heap == nullptr)
+            [[nodiscard]] const char *ptr()
+            const
             {
-                capacity = required + 1;
-                heap = new char[capacity];
-                max_capacity = required;
-                return;
+                return heap; // Return heap memory pointer
             }
 
-            if (len + required > max_capacity)
+            /**
+             * @brief Ensures the string has enough capacity for additional data.
+             * @param required The additional capacity to reserve.
+             *
+             * Switches to heap memory or grows the heap buffer if needed.
+             */
+            void reserve_growth(const size_t required)
             {
-                max_capacity = len + required;
-                reallocate();
+                if (heap == nullptr)
+                {
+                    capacity = required + 1;
+                    heap = Allocator::arr(capacity);
+                    max_capacity = required;
+                    return;
+                }
+
+                if (len + required > max_capacity)
+                {
+                    // Check if we need to grow the heap memory
+                    auto new_capacity = static_cast<size_t>(capacity * GrowthFactor);
+                    const size_t count_to = len + required;
+
+                    while (new_capacity < count_to)
+                    {
+                        new_capacity *= GrowthFactor; // Increase capacity by growth factor
+                    }
+
+                    max_capacity = new_capacity;
+                    reallocate();
+                }
             }
-        }
 
-        /**
-         * @brief Appends a single character to the string.
-         * @param c The character to append.
-         */
-        void push(const char c)
-        {
-            reserve_growth(1); // Reserve space for one character
-            heap[len++] = c; // Add character to heap memory
-        }
-
-        /**
-         * @brief Appends a C-style string to the string.
-         * @param c The null-terminated string to append.
-         * @param c_len The length of the string to append. Defaults to strlen(c).
-         */
-        void push(const char *c, const size_t c_len)
-        {
-            reserve_growth(c_len); // Reserve space for one character
-            memcpy(heap + len, c, c_len);
-            len += c_len; // Update the length of the string
-        }
-
-        void push(const char *c)
-        {
-            push(c, str::len(c)); // Push with length
-        }
-
-        /**
-         * @brief Concatenation operator for string + string.
-         */
-        string operator+(const string & other) const
-        {
-            string result;
-            result.reserve(len + other.len);
-            if (heap != nullptr)
+            void reserve(const size_t required)
             {
-                result.push(c_str(), len);
+                if (heap == nullptr)
+                {
+                    capacity = required + 1;
+                    heap = Allocator::arr(capacity);
+                    max_capacity = required;
+                    return;
+                }
+
+                if (len + required > max_capacity)
+                {
+                    max_capacity = len + required;
+                    reallocate();
+                }
             }
 
-            if (other.heap != nullptr)
+            /**
+             * @brief Appends a single character to the string.
+             * @param c The character to append.
+             */
+            void push(const char c)
             {
-                result.push(other.c_str(), other.len);
+                reserve_growth(1); // Reserve space for one character
+                heap[len++] = c; // Add character to heap memory
             }
 
-            return result;
-        }
-
-        /**
-         * @brief Concatenation operator for string + const char*.
-         */
-        string operator+(const char* other)
-        const {
-            const size_t other_len = str::len(other);
-            string result;
-            result.reserve(len + other_len);
-            if (heap != nullptr)
+            /**
+             * @brief Appends a C-style string to the string.
+             * @param c The null-terminated string to append.
+             * @param c_len The length of the string to append. Defaults to strlen(c).
+             */
+            void push(const char *c, const size_t c_len)
             {
-                result.push(c_str(), len);
+                reserve_growth(c_len); // Reserve space for one character
+                memcpy(heap + len, c, c_len);
+                len += c_len; // Update the length of the string
             }
 
-            result.push(other, other_len);
-            return result;
-        }
-
-        bool operator==(const string& other) const
-        {
-            if (len != other.len) return false;
-            return memcmp(ptr(), other.ptr(), len) == 0;
-        }
-
-        bool operator==(const char *other) const
-        {
-            if (len != str::len(other)) return false;
-            return memcmp(ptr(), other, len) == 0;
-        }
-
-        /**
-         * @brief Returns the current length of the string.
-         * @return The number of characters in the string.
-         */
-        [[nodiscard]] size_t size()
-        const {
-            return len;
-        }
-
-        /**
-         * @brief Creates a string object that uses an external buffer without copying.
-         *
-         * The returned string will directly reference the provided buffer.
-         * The caller is responsible for ensuring the buffer remains valid for the lifetime of the string.
-         * No memory is allocated or copied.
-         *
-         * @param buf Pointer to the external character buffer.
-         * @param buf_len Length of the buffer.
-         * @return string referencing the external buffer.
-         */
-        static string no_copy(const char *buf, const size_t buf_len)
-        {
-            string str;
-            str.heap = const_cast<char*>(buf); // Use the provided buffer directly
-            str.len = buf_len;
-            str.capacity = buf_len + 1; // Set capacity to length + null terminator
-            str.max_capacity = buf_len; // Set max capacity to length
-            return str;
-        }
-
-        /**
-         * @brief Destructor. Releases heap memory if allocated.
-         */
-        ~string()
-        {
-            if (heap)
+            void push(const char *c)
             {
-                delete[] heap; // Free heap memory if allocated
-                heap = nullptr;
+                push(c, str::len(c)); // Push with length
             }
-        }
-    };
+
+            /**
+             * @brief Concatenation operator for string + string.
+             */
+            string operator+(const string & other) const
+            {
+                string result;
+                result.reserve(len + other.len);
+                if (heap != nullptr)
+                {
+                    result.push(c_str(), len);
+                }
+
+                if (other.heap != nullptr)
+                {
+                    result.push(other.c_str(), other.len);
+                }
+
+                return result;
+            }
+
+            /**
+             * @brief Concatenation operator for string + const char*.
+             */
+            string operator+(const char* other)
+            const {
+                const size_t other_len = str::len(other);
+                string result;
+                result.reserve(len + other_len);
+                if (heap != nullptr)
+                {
+                    result.push(c_str(), len);
+                }
+
+                result.push(other, other_len);
+                return result;
+            }
+
+            bool operator==(const string& other) const
+            {
+                if (len != other.len) return false;
+                return memcmp(ptr(), other.ptr(), len) == 0;
+            }
+
+            bool operator==(const char *other) const
+            {
+                if (len != str::len(other)) return false;
+                return memcmp(ptr(), other, len) == 0;
+            }
+
+            /**
+             * @brief Returns the current length of the string.
+             * @return The number of characters in the string.
+             */
+            [[nodiscard]] size_t size()
+            const {
+                return len;
+            }
+
+            /**
+             * @brief Creates a string object that uses an external buffer without copying.
+             *
+             * The returned string will directly reference the provided buffer.
+             * The caller is responsible for ensuring the buffer remains valid for the lifetime of the string.
+             * No memory is allocated or copied.
+             *
+             * @param buf Pointer to the external character buffer.
+             * @param buf_len Length of the buffer.
+             * @return string referencing the external buffer.
+             */
+            static string no_copy(const char *buf, const size_t buf_len)
+            {
+                string str;
+                str.heap = const_cast<char*>(buf); // Use the provided buffer directly
+                str.len = buf_len;
+                str.capacity = buf_len + 1; // Set capacity to length + null terminator
+                str.max_capacity = buf_len; // Set max capacity to length
+                return str;
+            }
+
+            /**
+             * @brief Destructor. Releases heap memory if allocated.
+             */
+            ~string()
+            {
+                if (heap)
+                {
+                    delete[] heap; // Free heap memory if allocated
+                    heap = nullptr;
+                }
+            }
+        };
+    }
+
+    template <double GrowthFactor = 1.8>
+    using string = pmr::string<GrowthFactor, memory::resource<char>>;
 
     struct string_hash
     {
