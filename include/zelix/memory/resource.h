@@ -93,6 +93,7 @@ namespace zelix::memory
             return new (mem) T(container::forward<Args>(args)...);
         }
 
+        template <bool CallDestructor = true>
         static void deallocate(T *ptr) ///< Deallocate memory at given pointer
         {
             if constexpr (std::is_trivially_destructible_v<T>)
@@ -103,7 +104,10 @@ namespace zelix::memory
             }
 
             // Call the destructor for non-trivially destructible types
-            ptr->~T();
+            if constexpr (CallDestructor)
+            {
+                ptr->~T();
+            }
             operator delete(ptr);
         }
     };
