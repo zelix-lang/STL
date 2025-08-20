@@ -274,29 +274,10 @@ namespace zelix::container
         }
 
         /**
-         * @brief Appends a copy of the given element to the end of the vector.
-         *
-         * @param value Element to append.
-         */
         void push_back(const T &&value)
         {
-#           if defined(__GNUC__) || defined(__clang__)
-            if (__builtin_expect(initialized == 0, 0))
-#           else
-            if (!initialized)
-#           endif
-            {
-                init();
-            }
-
-            if (size_ >= capacity_)
-            {
-                resize(static_cast<size_t>(capacity_ * GrowthFactor));
-            }
-
-            new (&this->data[size_]) T(container::move(value));
-            ++size_;
-        }
+            Deprecated: Use emplace_back instead.
+        }*/
 
         /**
          * @brief Constructs an element in-place at the end of the vector.
