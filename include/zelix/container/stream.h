@@ -29,6 +29,7 @@
 
 #pragma once
 #include "zelix/container/vector.h"
+#include "zelix/container/optional.h"
 
 namespace zelix::container
 {
