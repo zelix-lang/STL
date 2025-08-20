@@ -211,27 +211,4 @@ namespace zelix::container::str
         }
 #       endif
     }
-
-    struct string_hash
-    {
-        using is_transparent = void;
-
-        size_t operator()(const string &str) const
-        {
-            // Use xxHash
-            return XXH3_64bits(str.ptr(), str.size());
-        }
-
-        size_t operator()(const external_string &str) const
-        {
-            // Use xxHash
-            return XXH3_64bits(str.ptr(), str.size());
-        }
-
-        size_t operator()(const char* c_str) const
-        {
-            const size_t len = str::len(c_str);
-            return XXH64(c_str, len, len);
-        }
-    };
 }
