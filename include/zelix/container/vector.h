@@ -81,32 +81,7 @@ namespace zelix::container
              */
             void resize(const size_t new_size)
             {
-                // Trivial-copyable optimization
-                if constexpr (std::is_trivially_copyable_v<T>)
-                {
-                    T* new_data = static_cast<T*>(realloc(data, sizeof(T) * new_size));
-                    if (!new_data)
-                    {
-                        free(data);
-                        throw except::exception("Memory allocation failed");
-                    }
-
-                    data = new_data;
-                    capacity_ = new_size;
-                    return;
-                }
-
-                T* new_data = Allocator::arr(new_size);
-
-                // Move existing elements to new storage
-                for (size_t i = 0; i < size_; ++i)
-                {
-                    new (&new_data[i]) T(container::move(data[i]));
-                    data[i].~T(); // Call destructor for old element
-                }
-
-                Allocator::deallocate(data); // Deallocate old memory
-                data = new_data;
+                data = Allocator::reallocate(data, size_, new_size);
                 capacity_ = new_size;
             }
 
