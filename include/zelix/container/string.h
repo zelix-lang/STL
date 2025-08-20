@@ -42,6 +42,8 @@
 #elif defined(__SSE__) || (defined(__has_include) && __has_include(<xmmintrin.h>))
 #   define ZELIX_STL_SSE_DEF
 #   include <xmmintrin.h>
+#else
+#   include <cstring> // Fallback to standard library
 #endif
 
 namespace zelix::container::str
