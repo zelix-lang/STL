@@ -206,13 +206,13 @@ namespace zelix::stl
 
         ostream &operator<<(float val)
         {
-            do_write(val);
+            do_write_integral(val);
             return *this;
         }
 
         ostream &operator<<(double val)
         {
-            do_write(val);
+            do_write_integral(val);
             return *this;
         }
 
