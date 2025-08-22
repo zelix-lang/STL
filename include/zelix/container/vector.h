@@ -195,7 +195,7 @@ namespace zelix::stl
                     resize(static_cast<size_t>(capacity_ * GrowthFactor));
                 }
 
-                new (&this->data[size_]) T(container::move(value));
+                new (&this->data[size_]) T(stl::move(value));
                 ++size_;
             }
 
@@ -220,7 +220,7 @@ namespace zelix::stl
                     resize(static_cast<size_t>(capacity_ * GrowthFactor));
                 }
 
-                new (&this->data[size_]) T(container::move(value));
+                new (&this->data[size_]) T(stl::move(value));
                 ++size_;
             }
 
@@ -245,7 +245,7 @@ namespace zelix::stl
                     resize(static_cast<size_t>(capacity_ * GrowthFactor));
                 }
 
-                new (&this->data[size_]) T(container::move(value));
+                new (&this->data[size_]) T(stl::move(value));
                 ++size_;
             }
 
@@ -271,7 +271,7 @@ namespace zelix::stl
                     resize(static_cast<size_t>(capacity_ * GrowthFactor));
                 }
 
-                new (&this->data[size_]) T(container::move(value));
+                new (&this->data[size_]) T(stl::move(value));
                 ++size_;
             }
 
