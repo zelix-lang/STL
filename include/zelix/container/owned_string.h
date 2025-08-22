@@ -31,6 +31,7 @@
 #include <cstring>
 #include <xxh3.h>
 #include "zelix/memory/resource.h"
+#include "zelix/except/uninitialized_memory.h"
 
 namespace zelix::stl
 {
@@ -181,6 +182,10 @@ namespace zelix::stl
             [[nodiscard]] const char *ptr()
             const
             {
+                if (!heap)
+                {
+                    throw except::uninitialized_memory("String not initialized");
+                }
                 return heap; // Return heap memory pointer
             }
 
