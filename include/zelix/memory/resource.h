@@ -73,7 +73,7 @@ namespace zelix::stl::memory
                 if (!new_data)
                 {
                     deallocate(ptr);
-                    throw except::exception("Memory allocation failed");
+                    throw except::failed_alloc("Memory allocation failed");
                 }
 
                 return new_data;
