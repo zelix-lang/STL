@@ -181,6 +181,17 @@ namespace zelix::stl
         }
 
         /**
+         * \brief Advances the head index by one.
+         *
+         * Moves the head forward, potentially exceeding the buffer size.
+         * Caller is responsible for bounds checking if needed.
+         */
+        void advance()
+        {
+            head++;
+        }
+
+        /**
          * \brief Returns a pointer to the internal data array.
          *
          * \return Pointer to the internal data array.
