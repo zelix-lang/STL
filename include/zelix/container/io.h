@@ -158,49 +158,49 @@ namespace zelix::stl
 
         ostream &operator<<(short val)
         {
-            do_write(val);
+            do_write_integral(val);
             return *this;
         }
 
         ostream &operator<<(int val)
         {
-            do_write(val);
+            do_write_integral(val);
             return *this;
         }
 
         ostream &operator<<(long val)
         {
-            do_write(val);
+            do_write_integral(val);
             return *this;
         }
 
         ostream &operator<<(long long val)
         {
-            do_write(val);
+            do_write_integral(val);
             return *this;
         }
 
         ostream &operator<<(unsigned short val)
         {
-            do_write(val);
+            do_write_integral(val);
             return *this;
         }
 
         ostream &operator<<(unsigned int val)
         {
-            do_write(val);
+            do_write_integral(val);
             return *this;
         }
 
         ostream &operator<<(unsigned long val)
         {
-            do_write(val);
+            do_write_integral(val);
             return *this;
         }
 
         ostream &operator<<(unsigned long long val)
         {
-            do_write(val);
+            do_write_integral(val);
             return *this;
         }
 
