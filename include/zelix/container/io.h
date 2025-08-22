@@ -162,7 +162,6 @@ namespace zelix::stl
                 }
 
                 buffer.emplace_back(s[i]); ///< Add the character to the buffer
-                buffer.advance(); ///< Advance the position in the buffer
             }
 
             return *this;
