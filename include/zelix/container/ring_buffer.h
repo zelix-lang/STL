@@ -28,8 +28,8 @@
 //
 
 #pragma once
-#include <cstddef>
 #include "forward.h"
+#include "zelix/except/out_of_range.h"
 
 namespace zelix::stl
 {
@@ -90,7 +90,7 @@ namespace zelix::stl
         T &operator[](size_t index)
         {
             if (index >= head)
-                throw except::exception("Index out of range");
+                throw except::out_of_range("Index out of range");
 
             return data[index];
         }
@@ -105,7 +105,7 @@ namespace zelix::stl
         T &operator[](size_t index) const
         {
             if (index >= head)
-                throw except::exception("Index out of range");
+                throw except::out_of_range("Index out of range");
 
             return data[index];
         }
