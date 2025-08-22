@@ -62,6 +62,9 @@ namespace zelix::stl
                 "Expected: trivially copyable types or instances "
                 "of container::display."
             );
+
+            // Unreachable, but silences compiler warnings
+            return {};
         }
     }
 }
