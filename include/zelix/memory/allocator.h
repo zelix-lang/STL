@@ -77,7 +77,7 @@ namespace zelix::stl::memory
 
             ~page()
             {
-                if constexpr (CallDestructors)
+                if constexpr (!std::is_trivially_destructible_v<T> && CallDestructors)
                 {
                     // Call the destructor of all allocated objects
                     for (size_t i = 0; i < offset; ++i)
@@ -148,6 +148,6 @@ namespace zelix::stl::memory
         };
     }
 
-    template <typename T, size_t Capacity = 256, bool CallDestructors = false>
+    template <typename T, size_t Capacity = 256, bool CallDestructors = true>
     using lazy_allocator = pmr::lazy_allocator<T, Capacity, CallDestructors>; ///< Default lazy allocator type using the default page size and destructor behavior
 }
