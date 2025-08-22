@@ -190,6 +190,15 @@ namespace zelix::stl
             return data; // Return a pointer to the internal data array
         }
 
+        /**
+         * \brief Writes a block of elements into the ring buffer.
+         *
+         * \param buf   Pointer to the source buffer containing elements to write.
+         * \param count Number of elements to write from the source buffer.
+         *
+         * \note It is the caller's responsibility to ensure that there is enough space
+         *       in the ring buffer to accommodate the elements being written.
+         */
         void write(const T *buf, const size_t count)
         {
             // Warning: it is the caller's responsibility to do bounds checking
