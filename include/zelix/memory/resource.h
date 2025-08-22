@@ -98,11 +98,22 @@ namespace zelix::stl::memory
             // Allocate directly for trivially copyable types
             if constexpr (std::is_trivially_copyable_v<T>)
             {
-                return static_cast<T *>(malloc(sizeof(T)));
+                auto *mem = malloc(sizeof(T));
+                if (!mem)
+                {
+                    throw except::failed_alloc("Memory allocation failed");
+                }
+
+                return static_cast<T *>(mem);
             }
 
             // Allocate memory and construct the object
             void *mem = operator new(sizeof(T));
+            if (!mem)
+            {
+                throw except::failed_alloc("Memory allocation failed");
+            }
+
             return new (mem) T(stl::forward<Args>(args)...);
         }
 
