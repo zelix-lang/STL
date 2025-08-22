@@ -99,7 +99,7 @@ namespace zelix::stl
             {
                 return;
             }
-            
+
             write(FileDescriptor, buffer.ptr(), buffer.pos());
             buffer.flush(); // Clear the buffer after writing
 #       else
