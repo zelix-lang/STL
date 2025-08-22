@@ -71,7 +71,7 @@ namespace zelix::memory
             // Move existing elements to new storage
             for (size_t i = 0; i < old_len; ++i)
             {
-                new (&new_data[i]) T(container::move(ptr[i]));
+                new (&new_data[i]) T(stl::move(ptr[i]));
                 ptr[i].~T(); // Call destructor for old element
             }
 

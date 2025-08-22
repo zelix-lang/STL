@@ -41,10 +41,10 @@ namespace zelix::stl
 
     public:
         explicit stream(vector<T>& data) :
-            data_(container::move(data)) {}
+            data_(stl::move(data)) {}
 
         explicit stream(vector<T>&& data) :
-            data_(container::move(data)) {}
+            data_(stl::move(data)) {}
 
         /**
          * @brief Constructs an element in-place at the end of the vector.
