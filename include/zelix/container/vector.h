@@ -32,6 +32,8 @@
 #include <type_traits>
 #include "move.h"
 #include "zelix/except/exception.h"
+#include "zelix/except/out_of_range.h"
+#include "zelix/except/uninitialized_memory.h"
 #include "zelix/memory/resource.h"
 
 namespace zelix::stl
@@ -432,10 +434,10 @@ namespace zelix::stl
 #           else
                 if (!initialized)
 #           endif
-                    throw except::exception("Early access to vector");
+                    throw except::uninitialized_memory("Early access to vector");
 
                 if (index >= size_)
-                    throw except::exception("Index out of range");
+                    throw except::out_of_range("Index out of range");
 
                 return data[index];
             }
