@@ -28,10 +28,11 @@
 //
 
 #pragma once
-#include <type_traits>
 #include <cstdlib>
+#include <type_traits>
 #include "zelix/container/forward.h"
 #include "zelix/container/move.h"
+#include "zelix/except/failed_alloc.h"
 
 namespace zelix::stl::memory
 {
@@ -44,7 +45,13 @@ namespace zelix::stl::memory
             // Allocate directly for trivially copyable types
             if constexpr (std::is_trivially_copyable_v<T>)
             {
-                return static_cast<T *>(malloc(len * sizeof(T)));
+                auto *mem = malloc(len * sizeof(T));
+                if (!mem)
+                {
+                    throw except::failed_alloc("Memory allocation failed");
+                }
+
+                return static_cast<T *>(mem);
             }
 
             // Allocate memory and construct the object
