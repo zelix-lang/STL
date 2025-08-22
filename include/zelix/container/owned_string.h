@@ -180,9 +180,8 @@ namespace zelix::stl
                 throw except::uninitialized_memory("String not initialized");
             }
 
-            [[nodiscard]] const char *ptr()
-            const
-            {
+            [[nodiscard]] char *ptr()
+            const {
                 if (!heap)
                 {
                     throw except::uninitialized_memory("String not initialized");
