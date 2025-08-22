@@ -104,6 +104,7 @@ namespace zelix::stl::memory
                     throw except::failed_alloc("Memory allocation failed");
                 }
 
+                new (mem) T(stl::forward<Args>(args)...);
                 return static_cast<T *>(mem);
             }
 
