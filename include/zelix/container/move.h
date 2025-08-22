@@ -30,7 +30,7 @@
 #pragma once
 #include "remove_reference.h"
 
-namespace zelix::container
+namespace zelix::stl
 {
     template<typename T>
     constexpr typename remove_reference<T>::type&& move(T&& arg) noexcept

@@ -34,7 +34,7 @@
 #include "string_utils.h"
 #include "zelix/memory/resource.h"
 
-namespace zelix::container
+namespace zelix::stl
 {
     namespace pmr
     {

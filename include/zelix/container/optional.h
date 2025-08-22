@@ -32,7 +32,7 @@
 #include "forward.h"
 #include "zelix/except/exception.h"
 
-namespace zelix::container
+namespace zelix::stl
 {
     template <typename T>
     class optional

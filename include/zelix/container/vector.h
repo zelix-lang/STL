@@ -34,7 +34,7 @@
 #include "zelix/except/exception.h"
 #include "zelix/memory/resource.h"
 
-namespace zelix::container
+namespace zelix::stl
 {
     namespace pmr
     {

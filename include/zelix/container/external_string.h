@@ -33,7 +33,7 @@
 #include <xxh3.h>
 #include "zelix/except/exception.h"
 
-namespace zelix::container
+namespace zelix::stl
 {
     class external_string
     {
