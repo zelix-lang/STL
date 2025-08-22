@@ -32,10 +32,10 @@
 
 namespace zelix::stl::except
 {
-    class uninitialized : public exception
+    class uninitialized_memory : public exception
     {
     public:
-        explicit uninitialized(const char *msg)
+        explicit uninitialized_memory(const char *msg)
             : exception(msg)
         {}
     };
