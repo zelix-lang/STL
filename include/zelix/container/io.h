@@ -141,7 +141,7 @@ namespace zelix::stl
         }
 
         template <typename T>
-        std::enable_if_t<std::is_integral_v<T>, ostream&>
+        std::enable_if_t<std::is_integral_v<T>>
         operator<<(T val)
         {
             char i_buffer[32];
