@@ -28,6 +28,7 @@
 //
 
 #pragma once
+#include "external_string.h"
 #include <cstring>
 #include <xxh3.h>
 #include "string_utils.h"
