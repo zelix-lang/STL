@@ -33,7 +33,7 @@
 #include "zelix/container/forward.h"
 #include "zelix/container/move.h"
 
-namespace zelix::memory
+namespace zelix::stl::memory
 {
     template <typename T>
     class resource
