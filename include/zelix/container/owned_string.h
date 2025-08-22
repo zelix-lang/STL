@@ -30,8 +30,9 @@
 #pragma once
 #include <cstring>
 #include <xxh3.h>
-#include "zelix/memory/resource.h"
+#include "string_utils.h"
 #include "zelix/except/uninitialized_memory.h"
+#include "zelix/memory/resource.h"
 
 namespace zelix::stl
 {
@@ -176,7 +177,7 @@ namespace zelix::stl
                     return heap;
                 }
 
-                return nullptr; // Return nullptr if no memory is allocated
+                throw except::uninitialized_memory("String not initialized");
             }
 
             [[nodiscard]] const char *ptr()
