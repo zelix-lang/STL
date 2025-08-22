@@ -90,7 +90,7 @@ namespace zelix::memory
 
             // Allocate memory and construct the object
             void *mem = operator new(sizeof(T));
-            return new (mem) T(container::forward<Args>(args)...);
+            return new (mem) T(stl::forward<Args>(args)...);
         }
 
         template <bool CallDestructor = true>

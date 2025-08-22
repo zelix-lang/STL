@@ -76,7 +76,7 @@ namespace zelix::stl
                 head = 0; // Reset the head if it exceeds the maximum size
             }
 
-            new (&this->data[head]) T(container::forward<Args>(args)...);
+            new (&this->data[head]) T(stl::forward<Args>(args)...);
             ++head;
         }
 
