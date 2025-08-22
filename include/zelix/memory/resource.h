@@ -67,7 +67,7 @@ namespace zelix::stl::memory
 
         static T *arr(const size_t len = 10) ///< Allocate memory of given size
         {
-            return raw(sizeof(T) * len);
+            return static_cast<T *>(raw(sizeof(T) * len));
         }
 
         static T *reallocate(T *ptr, const size_t old_len, const size_t new_len)
@@ -106,23 +106,31 @@ namespace zelix::stl::memory
             return mem;
         }
 
-        template <bool CallDestructor = true>
-        static void deallocate(T *ptr) ///< Deallocate memory at given pointer
+        static void deallocate_raw(void *ptr)
         {
             if constexpr (std::is_trivially_destructible_v<T>)
             {
-                // Free the pointer directly
                 free(ptr);
             }
             else
+            {
+                operator delete(ptr);
+            }
+        }
+
+        template <bool CallDestructor = true>
+        static void deallocate(T *ptr) ///< Deallocate memory at given pointer
+        {
+            if constexpr (!std::is_trivially_destructible_v<T>)
             {
                 // Call the destructor for non-trivially destructible types
                 if constexpr (CallDestructor)
                 {
                     ptr->~T();
                 }
-                operator delete(ptr);
             }
+
+            deallocate_raw(ptr); // Free the pointer directly
         }
     };
 }
