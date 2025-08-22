@@ -569,7 +569,7 @@ namespace zelix::stl
              * @throws except::exception If the vector is empty.
              */
             T& back() {
-                if (size_ == 0) throw except::exception("back() on empty vector");
+                if (size_ == 0) throw except::out_of_range("back() on empty vector");
                 return data[size_ - 1];
             }
 
