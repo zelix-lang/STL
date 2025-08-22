@@ -1,0 +1,175 @@
+/*
+        ==== The Zelix Programming Language ====
+---------------------------------------------------------
+  - This file is part of the Zelix Programming Language
+    codebase. Zelix is a fast, statically-typed and
+    memory-safe programming language that aims to
+    match native speeds while staying highly performant.
+---------------------------------------------------------
+  - Zelix is categorized as free software; you can
+    redistribute it and/or modify it under the terms of
+    the GNU General Public License as published by the
+    Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+---------------------------------------------------------
+  - Zelix is distributed in the hope that it will
+    be useful, but WITHOUT ANY WARRANTY; without even
+    the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE. See the GNU General Public
+    License for more details.
+---------------------------------------------------------
+  - You should have received a copy of the GNU General
+    Public License along with Zelix. If not, see
+    <https://www.gnu.org/licenses/>.
+*/
+
+//
+// Created by rodrigo on 8/21/25.
+//
+
+#pragma once
+#include "display.h"
+#include "owned_string.h"
+#include "zelix/algorithm/itoa.h"
+#ifndef _WIN32
+#   include "ring_buffer.h"
+#   include <unistd.h>
+#else
+#   include <iostream> // Fallback to standard library for Windows
+#endif
+
+namespace zelix::stl
+{
+    template <int FileDescriptor, int Capacity>
+    class ostream
+    {
+#   ifndef _WIN32
+        ring_buffer<char, Capacity> buffer; ///< Ring buffer to hold the output data
+#   endif
+
+        void do_write(const char *data, const size_t size)
+        {
+#       ifndef _WIN32
+            // Write data to the file descriptor
+            if (size > Capacity)
+            {
+                size_t remaining = size;
+                auto ptr = const_cast<char *>(data);
+
+                // Write in chunks
+                while (remaining > Capacity)
+                {
+                    // Write only what fits
+                    size_t space = Capacity - buffer.pos();
+                    buffer.write(ptr, space);
+                    ptr += space;
+                    remaining -= space;
+
+                    // Check if the buffer is full
+                    if (buffer.full())
+                    {
+                        flush();
+                    }
+                }
+
+                return;
+            }
+
+            buffer.write(data, size);
+            if (buffer.full())
+            {
+                flush();
+            }
+#       else
+            std::cout << data; ///< Use standard output for Windows
+#       endif
+        }
+
+    public:
+        ostream()
+#       ifndef _WIN32
+            : buffer()
+#       endif
+        {
+
+        }
+        void flush()
+        {
+#       ifndef _WIN32
+            write(FileDescriptor, buffer.ptr(), buffer.pos());
+            buffer.flush(); // Clear the buffer after writing
+#       else
+            std::cout.flush(); // Use standard output flush for Windows
+#       endif
+        }
+
+        ostream &operator<<(const string &str_handle)
+        {
+            do_write(str_handle.c_str(), str_handle.size());
+            return *this;
+        }
+
+        ostream &operator<<(const string &&str_handle)
+        {
+            do_write(str_handle.c_str(), str_handle.size());
+            return *this;
+        }
+
+        ostream &operator<<(const bool val)
+        {
+            if (val)
+            {
+                do_write("true", 4);
+            }
+            else
+            {
+                do_write("false", 5);
+            }
+
+            return *this;
+        }
+
+        ostream &operator<<(const display &d)
+        {
+            const auto val = d.serialize();
+            do_write(val.c_str(), val.size());
+            return *this;
+        }
+
+        template <typename T>
+        std::enable_if_t<std::is_integral_v<T>, ostream&>
+        operator<<(T val)
+        {
+            char i_buffer[32];
+            const size_t len = algorithm::itoa(val, i_buffer);
+            do_write(i_buffer, len);
+            return *this;
+        }
+
+        ostream &operator<<(const char *s)
+        {
+#       ifndef _WIN32
+            // Append the string on the fly
+            for (size_t i = 0; s[i] != '\0'; ++i)
+            {
+                if (buffer.full())
+                {
+                    flush(); ///< Flush the buffer if it's full
+                }
+
+                buffer[buffer.pos()] = s[i];
+                buffer.advance(); ///< Advance the position in the buffer
+            }
+
+            return *this;
+#       else
+            std::cout << s; ///< Use standard output for Windows
+#       endif
+        }
+    };
+
+    inline ostream<STDOUT_FILENO, 1024> stdout; ///< Standard output stream
+    inline ostream<STDERR_FILENO, 1024> stderr; ///< Standard error stream
+    inline auto cout = stdout; ///< Alias for standard output stream
+    inline auto cerr = stderr; ///< Alias for standard error stream
+}
