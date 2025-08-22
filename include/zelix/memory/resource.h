@@ -40,12 +40,11 @@ namespace zelix::stl::memory
     class resource
     {
     public:
-        static T *arr(const size_t len = 10) ///< Allocate memory of given size
+        static void *raw(const size_t bytes)
         {
-            // Allocate directly for trivially copyable types
             if constexpr (std::is_trivially_copyable_v<T>)
             {
-                auto *mem = malloc(len * sizeof(T));
+                auto *mem = malloc(bytes);
                 if (!mem)
                 {
                     throw except::failed_alloc("Memory allocation failed");
@@ -56,14 +55,19 @@ namespace zelix::stl::memory
             else
             {
                 // Allocate memory and construct the object
-                auto *mem = operator new(len * sizeof(T));
+                auto *mem = operator new(bytes);
                 if (!mem)
                 {
                     throw except::failed_alloc("Memory allocation failed");
                 }
 
-                return static_cast<T *>(mem);
+                return mem;
             }
+        }
+
+        static T *arr(const size_t len = 10) ///< Allocate memory of given size
+        {
+            return raw(sizeof(T) * len);
         }
 
         static T *reallocate(T *ptr, const size_t old_len, const size_t new_len)
@@ -97,27 +101,9 @@ namespace zelix::stl::memory
         template <typename... Args>
         static T *allocate(Args&&... args) ///< Allocate memory of given size
         {
-            // Allocate directly for trivially copyable types
-            if constexpr (std::is_trivially_copyable_v<T>)
-            {
-                auto *mem = malloc(sizeof(T));
-                if (!mem)
-                {
-                    throw except::failed_alloc("Memory allocation failed");
-                }
-
-                new (mem) T(stl::forward<Args>(args)...);
-                return static_cast<T *>(mem);
-            }
-
-            // Allocate memory and construct the object
-            void *mem = operator new(sizeof(T));
-            if (!mem)
-            {
-                throw except::failed_alloc("Memory allocation failed");
-            }
-
-            return new (mem) T(stl::forward<Args>(args)...);
+            void *mem = raw(sizeof(T));
+            new (mem) T(stl::forward<Args>(args)...);
+            return mem;
         }
 
         template <bool CallDestructor = true>
