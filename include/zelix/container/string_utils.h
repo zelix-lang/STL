@@ -59,7 +59,7 @@
 #   include <cstring> // Fallback to standard library
 #endif
 
-namespace zelix::container::str
+namespace zelix::stl::str
 {
     /**
      * Checks if the given string `str` starts with the specified `prefix`.

@@ -31,7 +31,7 @@
 #include "zelix/container/vector.h"
 #include "zelix/container/optional.h"
 
-namespace zelix::container
+namespace zelix::stl
 {
     template <typename T>
     class stream

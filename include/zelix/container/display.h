@@ -31,7 +31,7 @@
 
 #include "owned_string.h"
 
-namespace zelix::container
+namespace zelix::stl
 {
     class display
     {

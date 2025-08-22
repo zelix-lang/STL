@@ -31,7 +31,7 @@
 #include <cstddef>
 #include "forward.h"
 
-namespace zelix::container
+namespace zelix::stl
 {
     /**
      * \brief A fixed-size ring buffer (circular vector) container.

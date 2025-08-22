@@ -31,7 +31,7 @@
 #include "external_string.h"
 #include "owned_string.h"
 
-namespace zelix::container
+namespace zelix::stl
 {
     struct string_equal {
         using is_transparent = void;
