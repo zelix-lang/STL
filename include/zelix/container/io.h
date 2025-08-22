@@ -161,7 +161,7 @@ namespace zelix::stl
                     flush(); ///< Flush the buffer if it's full
                 }
 
-                buffer[buffer.pos()] = s[i];
+                buffer.emplace_back(s[i]); ///< Add the character to the buffer
                 buffer.advance(); ///< Advance the position in the buffer
             }
 
