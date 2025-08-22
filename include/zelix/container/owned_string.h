@@ -30,8 +30,6 @@
 #pragma once
 #include <cstring>
 #include <xxh3.h>
-#include "external_string.h"
-#include "string_utils.h"
 #include "zelix/memory/resource.h"
 
 namespace zelix::stl
