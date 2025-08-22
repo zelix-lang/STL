@@ -188,6 +188,12 @@ namespace zelix::stl
          */
         void advance()
         {
+            if (head >= Max)
+            {
+                head = 0; // Reset the head if it exceeds the maximum size
+                return;
+            }
+
             head++;
         }
 
