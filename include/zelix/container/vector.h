@@ -555,10 +555,10 @@ namespace zelix::stl
 #           else
                 if (!initialized)
 #           endif
-                    throw except::exception("Early access to vector");
+                    throw except::uninitialized_memory("Early access to vector");
 
                 if (index >= size_)
-                    throw except::exception("Index out of range");
+                    throw except::out_of_range("Index out of range");
 
                 return data[index];
             }
