@@ -27,6 +27,8 @@
 //
 
 #pragma once
+#include "display.h"
+#include "owned_string.h"
 #if defined(ZELIX_STL_USE_SIMD) && (\
     defined(__AVX__) || defined(__AVX2__) || \
     (defined(__has_include) && __has_include(<immintrin.h>)))
@@ -221,5 +223,37 @@ namespace zelix::container::str
             return s - start;
         }
 #       endif
+    }
+
+    template <typename T>
+    static string serialize(T &&val)
+    {
+        if constexpr (std::is_same_v<T, char>)
+        {
+            string res;
+            res.push(val);
+            return res;
+        }
+        if constexpr (std::is_same_v<T, const char *>)
+        {
+            return string::no_copy(val, str::len(val));
+        }
+        else if constexpr (std::is_same_v<T, string>)
+        {
+            // Already a string, just return it
+            return container::forward<T>(val);
+        }
+        else if constexpr (std::is_base_of_v<display, T>)
+        {
+            return val.serialize();
+        }
+        else
+        {
+            static_assert(false,
+                "Invalid type for str::serialize(). "
+                "Expected: trivially copyable types or instances "
+                "of container::display."
+            );
+        }
     }
 }
