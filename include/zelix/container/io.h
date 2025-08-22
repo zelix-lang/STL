@@ -85,20 +85,27 @@ namespace zelix::stl
 #       endif
         }
 
-        template <typename T, std::enable_if_t<std::is_integral_v<T>>>
+        template <typename T>
         void do_write_integral(T val)
         {
             if constexpr (std::is_same_v<T, double> || std::is_same_v<T, float>)
             {
                 // Convert floating point numbers to string
-                char f_buffer[64];
+                char f_buffer[64] = {};
                 do_write(f_buffer, algorithm::dtoi(f_buffer, static_cast<double>(val), 2));
-                return;
             }
-
-            char i_buffer[32];
-            const size_t len = algorithm::itoa(val, i_buffer);
-            do_write(i_buffer, len);
+            else if constexpr (std::is_integral_v<T>) {
+                char i_buffer[32] = {};
+                const size_t len = algorithm::itoa(val, i_buffer);
+                do_write(i_buffer, len);
+            }
+            else
+            {
+                static_assert(
+                    false,
+                    "Unsupported type for ostream::do_write_integral"
+                );
+            }
         }
 
     public:
@@ -156,61 +163,61 @@ namespace zelix::stl
             return *this;
         }
 
-        ostream &operator<<(short val)
+        ostream &operator<<(const short val)
         {
             do_write_integral(val);
             return *this;
         }
 
-        ostream &operator<<(int val)
+        ostream &operator<<(const int val)
         {
             do_write_integral(val);
             return *this;
         }
 
-        ostream &operator<<(long val)
+        ostream &operator<<(const long val)
         {
             do_write_integral(val);
             return *this;
         }
 
-        ostream &operator<<(long long val)
+        ostream &operator<<(const long long val)
         {
             do_write_integral(val);
             return *this;
         }
 
-        ostream &operator<<(unsigned short val)
+        ostream &operator<<(const unsigned short val)
         {
             do_write_integral(val);
             return *this;
         }
 
-        ostream &operator<<(unsigned int val)
+        ostream &operator<<(const unsigned int val)
         {
             do_write_integral(val);
             return *this;
         }
 
-        ostream &operator<<(unsigned long val)
+        ostream &operator<<(const unsigned long val)
         {
             do_write_integral(val);
             return *this;
         }
 
-        ostream &operator<<(unsigned long long val)
+        ostream &operator<<(const unsigned long long val)
         {
             do_write_integral(val);
             return *this;
         }
 
-        ostream &operator<<(float val)
+        ostream &operator<<(const float val)
         {
             do_write_integral(val);
             return *this;
         }
 
-        ostream &operator<<(double val)
+        ostream &operator<<(const double val)
         {
             do_write_integral(val);
             return *this;
