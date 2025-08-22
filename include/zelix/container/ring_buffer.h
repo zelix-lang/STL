@@ -131,6 +131,16 @@ namespace zelix::stl
         }
 
         /**
+         * \brief Checks if the ring buffer is full.
+         *
+         * \return True if the buffer is full, false otherwise.
+         */
+        [[nodiscard]] bool full() const
+        {
+            return head >= Max; // Check if the ring vector is full
+        }
+
+        /**
          * \brief Checks if the ring buffer is empty.
          *
          * \return True if empty, false otherwise.
