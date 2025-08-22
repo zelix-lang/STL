@@ -52,7 +52,7 @@ namespace zelix::stl::memory
         public:
             page()
             {
-                buffer = Allocator::arr(Capacity);
+                buffer = Allocator::arr(Capacity * sizeof(T));
                 if (!buffer) throw std::bad_alloc();
             }
 
