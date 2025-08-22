@@ -125,15 +125,16 @@ namespace zelix::stl::memory
             {
                 // Free the pointer directly
                 free(ptr);
-                return;
             }
-
-            // Call the destructor for non-trivially destructible types
-            if constexpr (CallDestructor)
+            else
             {
-                ptr->~T();
+                // Call the destructor for non-trivially destructible types
+                if constexpr (CallDestructor)
+                {
+                    ptr->~T();
+                }
+                operator delete(ptr);
             }
-            operator delete(ptr);
         }
     };
 }
