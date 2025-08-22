@@ -30,6 +30,7 @@
 #pragma once
 #include "display.h"
 #include "owned_string.h"
+#include "zelix/algorithm/ftoi.h"
 #include "zelix/algorithm/itoa.h"
 #ifndef _WIN32
 #   include "ring_buffer.h"
@@ -46,7 +47,6 @@ namespace zelix::stl
 #   ifndef _WIN32
         ring_buffer<char, Capacity> buffer; ///< Ring buffer to hold the output data
 #   endif
-
         void do_write(const char *data, const size_t size)
         {
 #       ifndef _WIN32
@@ -83,6 +83,22 @@ namespace zelix::stl
 #       else
             std::cout << data; ///< Use standard output for Windows
 #       endif
+        }
+
+        template <typename T, std::enable_if_t<std::is_integral_v<T>>>
+        void do_write_integral(T val)
+        {
+            if constexpr (std::is_same_v<T, double> || std::is_same_v<T, float>)
+            {
+                // Convert floating point numbers to string
+                char f_buffer[64];
+                do_write(f_buffer, algorithm::dtoi(f_buffer, static_cast<double>(val), 2));
+                return;
+            }
+
+            char i_buffer[32];
+            const size_t len = algorithm::itoa(val, i_buffer);
+            do_write(i_buffer, len);
         }
 
     public:
@@ -140,13 +156,63 @@ namespace zelix::stl
             return *this;
         }
 
-        template <typename T>
-        std::enable_if_t<std::is_integral_v<T>>
-        operator<<(T val)
+        ostream &operator<<(short val)
         {
-            char i_buffer[32];
-            const size_t len = algorithm::itoa(val, i_buffer);
-            do_write(i_buffer, len);
+            do_write(val);
+            return *this;
+        }
+
+        ostream &operator<<(int val)
+        {
+            do_write(val);
+            return *this;
+        }
+
+        ostream &operator<<(long val)
+        {
+            do_write(val);
+            return *this;
+        }
+
+        ostream &operator<<(long long val)
+        {
+            do_write(val);
+            return *this;
+        }
+
+        ostream &operator<<(unsigned short val)
+        {
+            do_write(val);
+            return *this;
+        }
+
+        ostream &operator<<(unsigned int val)
+        {
+            do_write(val);
+            return *this;
+        }
+
+        ostream &operator<<(unsigned long val)
+        {
+            do_write(val);
+            return *this;
+        }
+
+        ostream &operator<<(unsigned long long val)
+        {
+            do_write(val);
+            return *this;
+        }
+
+        ostream &operator<<(float val)
+        {
+            do_write(val);
+            return *this;
+        }
+
+        ostream &operator<<(double val)
+        {
+            do_write(val);
             return *this;
         }
 
