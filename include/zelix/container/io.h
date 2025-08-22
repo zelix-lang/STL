@@ -168,6 +168,11 @@ namespace zelix::stl
         }
     };
 
+#   ifndef _WIN32
+    inline constexpr auto endl = "\n"; ///< Newline character for output streams
+#   else
+    inline constexpr auto endl = "\r\n"; ///< Newline character for output streams on Windows
+#   endif
     inline ostream<STDOUT_FILENO, 1024> stdout; ///< Standard output stream
     inline ostream<STDERR_FILENO, 1024> stderr; ///< Standard error stream
     inline auto cout = stdout; ///< Alias for standard output stream
