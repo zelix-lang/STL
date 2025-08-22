@@ -169,5 +169,15 @@ namespace zelix::stl
         {
             head = 0; // Reset the head to clear the buffer
         }
+
+        /**
+         * \brief Returns the current head position in the ring buffer.
+         *
+         * \return The index where the next element will be inserted.
+         */
+        [[nodiscard]] size_t pos() const
+        {
+            return head; // Return the current position (head index)
+        }
     };
 }
