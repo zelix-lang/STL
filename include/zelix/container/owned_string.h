@@ -287,6 +287,26 @@ namespace zelix::stl
             }
 
             /**
+             * @brief Provides non-const access to the character at the specified index.
+             * @param index The position of the character to access.
+             * @return Reference to the character at the given index.
+             */
+            char& operator[](const size_t index)
+            {
+                return heap[index];
+            }
+
+            /**
+             * @brief Provides const access to the character at the specified index.
+             * @param index The position of the character to access.
+             * @return Const reference to the character at the given index.
+             */
+            const char& operator[](const size_t index) const
+            {
+                return heap[index];
+            }
+
+            /**
              * @brief Concatenation operator for string + const char*.
              */
             string operator+(const char* other)
