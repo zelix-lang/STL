@@ -30,6 +30,7 @@
 #pragma once
 #include "display.h"
 #include "owned_string.h"
+#include "zelix/algorithm/itoa.h"
 
 namespace zelix::stl
 {
@@ -54,6 +55,23 @@ namespace zelix::stl
         else if constexpr (std::is_base_of_v<display, T>)
         {
             return val.serialize();
+        }
+        else if constexpr (
+            std::is_same_v<T, long> ||
+            std::is_same_v<T, int> ||
+            std::is_same_v<T, unsigned int> ||
+            std::is_same_v<T, unsigned long> ||
+            std::is_same_v<T, short> ||
+            std::is_same_v<T, unsigned short> ||
+            std::is_same_v<T, long long> ||
+            std::is_same_v<T, unsigned long long> ||
+            std::is_same_v<T, size_t>
+#           if defined(__ssize_t_defined)
+            || std::is_same_v<T, ssize_t>
+#           endif
+        )
+        {
+            return algorithm::itoa(val);
         }
         else
         {
