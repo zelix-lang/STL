@@ -30,7 +30,7 @@
 #pragma once
 #include <exception>
 
-namespace zelix::except
+namespace zelix::stl::except
 {
     class exception : public std::exception
     {
