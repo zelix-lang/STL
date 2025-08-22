@@ -95,6 +95,11 @@ namespace zelix::stl
         void flush()
         {
 #       ifndef _WIN32
+            if (buffer.pos() == 0)
+            {
+                return;
+            }
+            
             write(FileDescriptor, buffer.ptr(), buffer.pos());
             buffer.flush(); // Clear the buffer after writing
 #       else
@@ -164,6 +169,11 @@ namespace zelix::stl
 #       else
             std::cout << s; ///< Use standard output for Windows
 #       endif
+        }
+
+        ~ostream()
+        {
+            flush();
         }
     };
 
