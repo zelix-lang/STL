@@ -241,7 +241,7 @@ namespace zelix::stl::str
         else if constexpr (std::is_same_v<T, string>)
         {
             // Already a string, just return it
-            return container::forward<T>(val);
+            return stl::forward<T>(val);
         }
         else if constexpr (std::is_base_of_v<display, T>)
         {

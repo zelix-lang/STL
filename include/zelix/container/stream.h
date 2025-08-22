@@ -55,7 +55,7 @@ namespace zelix::stl
         template <typename... Args>
         void emplace_back(Args&&... args)
         {
-            data_.emplace_back(container::forward<Args>(args)...);
+            data_.emplace_back(stl::forward<Args>(args)...);
         }
 
         void push(const T &value)

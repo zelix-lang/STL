@@ -298,7 +298,7 @@ namespace zelix::stl
                     resize(static_cast<size_t>(capacity_ * GrowthFactor));
                 }
 
-                new (&this->data[size_]) T(container::forward<Args>(args)...);
+                new (&this->data[size_]) T(stl::forward<Args>(args)...);
                 ++size_;
             }
 
