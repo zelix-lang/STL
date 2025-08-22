@@ -29,12 +29,11 @@
 
 #pragma once
 #include <cstring>
-#include <cmath>
 
 #include "zelix/container/string_utils.h"
 
 namespace zelix::stl::algorithm {
-    inline void dtoi(char* buffer, double value, int decimals)
+    inline size_t dtoi(char* buffer, double value, int decimals)
     {
         if (decimals < 0) decimals = 0;
 
@@ -95,5 +94,6 @@ namespace zelix::stl::algorithm {
         }
 
         buffer[pos] = '\0';
+        return pos; // Return the length of the resulting string
     }
 }
