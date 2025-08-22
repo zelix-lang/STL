@@ -32,15 +32,15 @@
 
 namespace zelix::stl::algorithm
 {
-    static inline string itoa(long value)
+    static inline size_t itoa(long value, char *ptr)
     {
         // Edge case: when the value is 0
         if (value == 0)
         {
-            return "0";
+            ptr[0] = '0';
+            return 1;
         }
 
-        string result;
         long chars = 0;
         int is_negative = false;
 
@@ -77,7 +77,7 @@ namespace zelix::stl::algorithm
             const long digit = value % 10;
 
             // Put the character
-            result[index] = (char)('0' + digit);
+            ptr[index] = (char)('0' + digit);
             index--;
 
             // Decrement the number
@@ -87,9 +87,23 @@ namespace zelix::stl::algorithm
         // Add a negative sign
         if (is_negative)
         {
-            result[0] = '-';
+            ptr[0] = '-';
         }
 
-        return result;
+        return chars;
+    }
+
+    static inline string itoa(const long value)
+    {
+        if (value == 0)
+        {
+            // Return 0 directly
+            return "0";
+        }
+
+        string r;
+        r.reserve(22); // Reserve enough space for a long integer
+        r.calibrate(itoa(value, r.ptr())); // Convert the long to string and calibrate the length
+        return r; // Return the resulting string
     }
 }
