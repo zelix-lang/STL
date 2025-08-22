@@ -179,5 +179,15 @@ namespace zelix::stl
         {
             return head; // Return the current position (head index)
         }
+
+        /**
+         * \brief Returns a pointer to the internal data array.
+         *
+         * \return Pointer to the internal data array.
+         */
+        T *ptr()
+        {
+            return data; // Return a pointer to the internal data array
+        }
     };
 }
