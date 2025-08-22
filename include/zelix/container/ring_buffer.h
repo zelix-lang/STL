@@ -159,5 +159,15 @@ namespace zelix::stl
         {
             return head;
         }
+
+        /**
+         * \brief Clears the ring buffer.
+         *
+         * Resets the buffer to an empty state by setting the head index to zero.
+         */
+        void flush()
+        {
+            head = 0; // Reset the head to clear the buffer
+        }
     };
 }
