@@ -86,7 +86,7 @@ namespace zelix::container
             /**
              * @brief Default constructor. Initializes an empty string using stack memory.
              */
-            explicit string()
+            string()
             {
                 // Do not initialize memory right away
             }
@@ -122,7 +122,7 @@ namespace zelix::container
              *
              * Uses stack memory if the string is small enough, otherwise allocates on the heap.
              */
-            explicit string(const char *s)
+            string(const char *s)
             {
                 const auto s_len = str::len(s); // Get the length of the string
 
