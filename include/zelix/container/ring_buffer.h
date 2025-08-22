@@ -219,7 +219,7 @@ namespace zelix::stl
         void write(const T *buf, const size_t count)
         {
             // Warning: it is the caller's responsibility to do bounds checking
-            memcpy(data, buf + head, count * sizeof(T));
+            memcpy(data + head, buf, count * sizeof(T));
             head += count;
         }
     };
