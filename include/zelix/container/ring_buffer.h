@@ -189,5 +189,12 @@ namespace zelix::stl
         {
             return data; // Return a pointer to the internal data array
         }
+
+        void write(const T *buf, const size_t count)
+        {
+            // Warning: it is the caller's responsibility to do bounds checking
+            memcpy(data, buf + head, count * sizeof(T));
+            head += count;
+        }
     };
 }
