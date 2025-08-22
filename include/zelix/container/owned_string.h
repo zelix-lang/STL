@@ -190,6 +190,19 @@ namespace zelix::stl
             }
 
             /**
+             * @brief Sets the internal string length to a new value.
+             *
+             * \warning This function does not perform bounds checking or memory management.
+             * Use only if you are certain the new length is valid and the buffer is large enough.
+             * @param new_len The new length to set for the string.
+             */
+            void calibrate(const size_t new_len)
+            {
+                // Warning: Only use if you know what you're doing
+                len = new_len;
+            }
+
+            /**
              * @brief Ensures the string has enough capacity for additional data.
              * @param required The additional capacity to reserve.
              *
