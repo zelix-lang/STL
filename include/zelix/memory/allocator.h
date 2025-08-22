@@ -39,9 +39,9 @@ namespace zelix::stl::memory
             typename T,
             size_t Capacity,
             bool CallDestructors,
-            typename Allocator = resource<unsigned char>,
+            typename Allocator = resource<T>,
             typename = std::enable_if_t<
-                std::is_base_of_v<resource<unsigned char>, Allocator>
+                std::is_base_of_v<resource<T>, Allocator>
             >
         >
         class page
@@ -52,7 +52,7 @@ namespace zelix::stl::memory
         public:
             page()
             {
-                buffer = Allocator::arr(Capacity * sizeof(T));
+                buffer = static_cast<unsigned char *>(Allocator::raw(Capacity * sizeof(T)));
                 if (!buffer) throw std::bad_alloc();
             }
 
@@ -88,7 +88,7 @@ namespace zelix::stl::memory
                 }
 
                 // Free the buffer memory
-                Allocator::template deallocate<false>(buffer);
+                Allocator::deallocate_raw(buffer);
             }
         };
 
@@ -96,9 +96,9 @@ namespace zelix::stl::memory
             typename T,
             size_t Capacity = 256,
             bool CallDestructors = false,
-            typename Allocator = resource<unsigned char>,
+            typename Allocator = resource<T>,
             typename = std::enable_if_t<
-                std::is_base_of_v<resource<unsigned char>, Allocator>
+                std::is_base_of_v<resource<T>, Allocator>
             >
         >
         class lazy_allocator
