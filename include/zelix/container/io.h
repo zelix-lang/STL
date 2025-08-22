@@ -90,9 +90,8 @@ namespace zelix::stl
 #       ifndef _WIN32
             : buffer()
 #       endif
-        {
+        {}
 
-        }
         void flush()
         {
 #       ifndef _WIN32
