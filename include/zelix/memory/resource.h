@@ -55,7 +55,13 @@ namespace zelix::stl::memory
             }
 
             // Allocate memory and construct the object
-            return static_cast<T *>(operator new(len * sizeof(T)));
+            auto *mem = operator new(len * sizeof(T));
+            if (!mem)
+            {
+                throw except::failed_alloc("Memory allocation failed");
+            }
+
+            return static_cast<T *>(mem);
         }
 
         static T *reallocate(T *ptr, const size_t old_len, const size_t new_len)
