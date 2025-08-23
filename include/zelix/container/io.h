@@ -132,13 +132,13 @@ namespace zelix::stl
 
         ostream &operator<<(const string &str_handle)
         {
-            do_write(str_handle.c_str(), str_handle.size());
+            do_write(str_handle.ptr(), str_handle.size());
             return *this;
         }
 
         ostream &operator<<(const string &&str_handle)
         {
-            do_write(str_handle.c_str(), str_handle.size());
+            do_write(str_handle.ptr(), str_handle.size());
             return *this;
         }
 
@@ -158,7 +158,7 @@ namespace zelix::stl
 
         ostream &operator<<(const display &d)
         {
-            const auto val = d.serialize();
+            auto val = d.serialize();
             do_write(val.c_str(), val.size());
             return *this;
         }
