@@ -28,10 +28,11 @@
 //
 
 #pragma once
-#include "external_string.h"
 #include <cstring>
 #include <xxh3.h>
+#include "external_string.h"
 #include "string_utils.h"
+#include "zelix/except/out_of_range.h"
 #include "zelix/except/uninitialized_memory.h"
 #include "zelix/memory/resource.h"
 
@@ -53,23 +54,10 @@ namespace zelix::stl
         >
         class string
         {
-            char* heap = nullptr; ///< Pointer to heap-allocated string for larger strings
+            char* buffer = nullptr; ///< Pointer to heap-allocated string
             size_t len = 0; ///< Length of the string
-            size_t max_capacity = 0; ///< Maximum capacity of the stack buffer, -1 for null terminator
+            size_t max_capacity = 0; ///< Maximum capacity of the buffer, -1 for null terminator
             size_t capacity = 0; ///< Capacity of the string
-
-            /**
-             * @brief Initializes the heap-allocated buffer and copies stack data.
-             *
-             * Called when the string grows beyond the stack buffer.
-             */
-            void heap_init()
-            {
-                // Initialize the heap-allocated string if needed
-                max_capacity = static_cast<size_t>(capacity * GrowthFactor - 1); // Adjust max capacity based on growth factor
-                capacity = max_capacity + 1;
-                heap = Allocator::arr(capacity);
-            }
 
             /**
              * @brief Reallocates the heap buffer to a larger size.
@@ -78,9 +66,8 @@ namespace zelix::stl
              */
             void reallocate()
             {
-                // Initialize the heap-allocated string if needed
                 capacity = max_capacity + 1;
-                heap = Allocator::reallocate(heap, len, capacity);
+                buffer = Allocator::reallocate(buffer, len, capacity);
             }
 
         public:
@@ -113,8 +100,7 @@ namespace zelix::stl
             explicit string(const char *str, const size_t s_len)
             {
                 reserve(s_len);
-                memcpy(heap, str, s_len);
-                len = s_len; // Set the length of the string
+                push(str, s_len);
             }
 
             /**
@@ -125,18 +111,15 @@ namespace zelix::stl
              */
             string(const char *s)
             {
-                const auto s_len = str::len(s); // Get the length of the string
-
-                this->capacity = s_len;
-                heap_init(); // Initialize heap buffer
-                memcpy(heap, s, s_len);
-                len = s_len; // Set the length of the string
+                const auto l = str::len(s);
+                reserve(l);
+                push(s, l);
             }
 
             string(string &&other) noexcept
-                : heap(other.heap), len(other.len), max_capacity(other.max_capacity), capacity(other.capacity)
+                : buffer(other.buffer), len(other.len), max_capacity(other.max_capacity), capacity(other.capacity)
             {
-                other.heap = nullptr; // Transfer ownership, set other's heap to nullptr
+                other.buffer = nullptr; // Transfer ownership, set other's heap to nullptr
                 other.len = 0;
                 other.max_capacity = 0;
                 other.capacity = 0;
@@ -144,23 +127,26 @@ namespace zelix::stl
 
             string(const string& other)
             {
-                len = other.len;
-                max_capacity = other.max_capacity;
-                capacity = other.capacity;
-                heap = new char[capacity];
-                memcpy(heap, other.heap, len);
+                if (other.len == 0 || other.buffer == nullptr) return;
+                reserve(other.len);
+                push(other.ptr(), other.len);
             }
 
             string& operator=(const string& other)
             {
-                if (this != &other) {
-                    delete[] heap;
-                    len = other.len;
-                    max_capacity = other.max_capacity;
-                    capacity = other.capacity;
-                    heap = new char[capacity];
-                    memcpy(heap, other.heap, len);
+                if (this != &other)
+                {
+                    len = 0; // Reset length before pushing new data
+                    if (other.len == 0 || other.buffer == nullptr)
+                    {
+                        Allocator::deallocate(buffer);
+                        return *this;
+                    }
+
+                    reserve(other.len);
+                    push(other.ptr(), other.len);
                 }
+
                 return *this;
             }
 
@@ -170,12 +156,13 @@ namespace zelix::stl
              *
              * Ensures the string is null-terminated before returning.
              */
-            [[nodiscard]] char *c_str() const
+            [[nodiscard]] char *c_str()
             {
-                if (heap)
+                if (buffer)
                 {
-                    heap[len] = '\0'; // Ensure null termination for heap memory
-                    return heap;
+                    reserve(1); // Ensure space for null terminator
+                    buffer[len] = '\0'; // Ensure null termination for heap memory
+                    return buffer;
                 }
 
                 throw except::uninitialized_memory("String not initialized");
@@ -183,11 +170,12 @@ namespace zelix::stl
 
             [[nodiscard]] char *ptr()
             const {
-                if (!heap)
+                if (!buffer)
                 {
                     throw except::uninitialized_memory("String not initialized");
                 }
-                return heap; // Return heap memory pointer
+
+                return buffer; // Return heap memory pointer
             }
 
             /**
@@ -211,36 +199,35 @@ namespace zelix::stl
              */
             void reserve_growth(const size_t required)
             {
-                if (heap == nullptr)
+                if (!buffer)
                 {
+                    buffer = Allocator::arr(required + 1); // +1 for null terminator
                     capacity = required + 1;
-                    heap = Allocator::arr(capacity);
                     max_capacity = required;
                     return;
                 }
 
-                if (len + required > max_capacity)
+                if (max_capacity > required + len)
                 {
-                    // Check if we need to grow the heap memory
-                    auto new_capacity = static_cast<size_t>(capacity * GrowthFactor);
-                    const size_t count_to = len + required;
-
-                    while (new_capacity < count_to)
-                    {
-                        new_capacity *= GrowthFactor; // Increase capacity by growth factor
-                    }
-
-                    max_capacity = new_capacity;
-                    reallocate();
+                    return; // Already have enough capacity
                 }
+
+                auto new_capacity = static_cast<size_t>(capacity * GrowthFactor);
+                while (new_capacity < len + required)
+                {
+                    new_capacity = static_cast<size_t>(new_capacity * GrowthFactor); // Increase capacity by growth factor
+                }
+
+                max_capacity = new_capacity;
+                reallocate();
             }
 
             void reserve(const size_t required)
             {
-                if (heap == nullptr)
+                if (!buffer)
                 {
+                    buffer = Allocator::arr(required + 1); // +1 for null terminator
                     capacity = required + 1;
-                    heap = Allocator::arr(capacity);
                     max_capacity = required;
                     return;
                 }
@@ -258,8 +245,8 @@ namespace zelix::stl
              */
             void push(const char c)
             {
-                reserve_growth(1); // Reserve space for one character
-                heap[len++] = c; // Add character to heap memory
+                reserve_growth(1);
+                buffer[len++] = c; // Add character to heap memory
             }
 
             /**
@@ -269,29 +256,29 @@ namespace zelix::stl
              */
             void push(const char *c, const size_t c_len)
             {
-                reserve_growth(c_len); // Reserve space for one character
-                memcpy(heap + len, c, c_len);
+                reserve_growth(c_len);
+                memcpy(buffer + len, c, c_len);
                 len += c_len; // Update the length of the string
             }
 
             void push(const char *c)
             {
-                push(c, str::len(c)); // Push with length
+                push(c, str::len(c));
             }
 
             /**
              * @brief Concatenation operator for string + string.
              */
-            string operator+(const string & other) const
+            string operator+(const string &other) const
             {
                 string result;
                 result.reserve(len + other.len);
-                if (heap != nullptr)
+                if (buffer != nullptr)
                 {
                     result.push(c_str(), len);
                 }
 
-                if (other.heap != nullptr)
+                if (other.buffer != nullptr)
                 {
                     result.push(other.c_str(), other.len);
                 }
@@ -306,7 +293,17 @@ namespace zelix::stl
              */
             char& operator[](const size_t index)
             {
-                return heap[index];
+                if (!buffer)
+                {
+                    throw except::uninitialized_memory("String not initialized");
+                }
+
+                if (index >= len)
+                {
+                    throw except::out_of_range("Index out of range");
+                }
+
+                return buffer[index];
             }
 
             /**
@@ -316,20 +313,31 @@ namespace zelix::stl
              */
             const char& operator[](const size_t index) const
             {
-                return heap[index];
+                if (!buffer)
+                {
+                    throw except::uninitialized_memory("String not initialized");
+                }
+
+                if (index >= len)
+                {
+                    throw except::out_of_range("Index out of range");
+                }
+
+                return buffer[index];
             }
 
             /**
              * @brief Concatenation operator for string + const char*.
              */
             string operator+(const char* other)
-            const {
+            const
+            {
                 const size_t other_len = str::len(other);
                 string result;
                 result.reserve(len + other_len);
-                if (heap != nullptr)
+                if (buffer != nullptr)
                 {
-                    result.push(c_str(), len);
+                    result.push(buffer, len);
                 }
 
                 result.push(other, other_len);
@@ -338,14 +346,30 @@ namespace zelix::stl
 
             bool operator==(const string& other) const
             {
-                if (len != other.len) return false;
-                return memcmp(ptr(), other.ptr(), len) == 0;
+                if (buffer == nullptr && other.buffer == nullptr)
+                {
+                    return true; // Empty strings are equal
+                }
+
+                if (buffer == nullptr || other.buffer == nullptr)
+                {
+                    return false; // One is empty, the other is not
+                }
+
+                if (len != other.len) return false; // Lengths differ, not equal
+                return memcmp(buffer, other.buffer, len) == 0;
             }
 
             bool operator==(const char *other) const
             {
-                if (len != str::len(other)) return false;
-                return memcmp(ptr(), other, len) == 0;
+                const auto other_len = str::len(other);
+                if (buffer == nullptr && other_len == 0)
+                {
+                    return true; // Both are empty
+                }
+
+                if (len != other_len) return false; // Lengths differ, not equal
+                return memcmp(buffer, other, len) == 0;
             }
 
             /**
@@ -353,8 +377,14 @@ namespace zelix::stl
              * @return The number of characters in the string.
              */
             [[nodiscard]] size_t size()
-            const {
+            const
+            {
                 return len;
+            }
+
+            void clear()
+            {
+                len = 0;
             }
 
             /**
@@ -368,14 +398,20 @@ namespace zelix::stl
              * @param buf_len Length of the buffer.
              * @return string referencing the external buffer.
              */
-            static string no_copy(const char *buf, const size_t buf_len)
+            static string no_copy(char *buf, const size_t buf_len)
             {
-                string str;
-                str.heap = const_cast<char*>(buf); // Use the provided buffer directly
-                str.len = buf_len;
-                str.capacity = buf_len + 1; // Set capacity to length + null terminator
-                str.max_capacity = buf_len; // Set max capacity to length
-                return str;
+                string result;
+
+                if (buf_len == 0)
+                {
+                    return result; // Return empty string if buffer length is zero
+                }
+
+                result.buffer = buf;
+                result.len = buf_len;
+                result.capacity = buf_len; // +1 for null terminator
+                result.max_capacity = buf_len - 1;
+                return result;
             }
 
             /**
@@ -383,11 +419,7 @@ namespace zelix::stl
              */
             ~string()
             {
-                if (heap)
-                {
-                    delete[] heap; // Free heap memory if allocated
-                    heap = nullptr;
-                }
+                Allocator::deallocate(buffer);
             }
         };
     }
