@@ -35,22 +35,64 @@ namespace zelix::stl
     template <
         typename T,
         typename U,
-        std::enable_if_t<std::is_integral_v<T>>,
-        std::enable_if_t<std::is_integral_v<U>>
+        typename Return = T,
+        typename = std::enable_if_t<std::is_integral_v<T>>,
+        typename = std::enable_if_t<std::is_integral_v<U>>,
+        typename = std::enable_if_t<std::is_integral_v<Return>>
     >
-    T max(T a, U b)
+    Return max(T a, U b)
     {
-        return a > b ? a : b;
+        if (a < b)
+        {
+            if constexpr (std::is_same_v<Return, T>)
+            {
+                return b;
+            }
+            else
+            {
+                return static_cast<Return>(b);
+            }
+        }
+
+        if constexpr (std::is_same_v<Return, T>)
+        {
+            return a;
+        }
+        else
+        {
+            return static_cast<Return>(a);
+        }
     }
 
     template <
         typename T,
         typename U,
-        std::enable_if_t<std::is_integral_v<T>>,
-        std::enable_if_t<std::is_integral_v<U>>
+        typename Return = T,
+        typename = std::enable_if_t<std::is_integral_v<T>>,
+        typename = std::enable_if_t<std::is_integral_v<U>>,
+        typename = std::enable_if_t<std::is_integral_v<Return>>
     >
-    T min(T a, U b)
+    Return min(T a, U b)
     {
-        return a > b ? a : b;
+        if (a > b)
+        {
+            if constexpr (std::is_same_v<Return, T>)
+            {
+                return b;
+            }
+            else
+            {
+                return static_cast<Return>(b);
+            }
+        }
+
+        if constexpr (std::is_same_v<Return, T>)
+        {
+            return a;
+        }
+        else
+        {
+            return static_cast<Return>(a);
+        }
     }
 }
