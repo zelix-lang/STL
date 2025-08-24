@@ -34,18 +34,22 @@ namespace zelix::stl
 {
     template <
         typename T,
-        std::enable_if_t<std::is_integral_v<T>>
+        typename U,
+        std::enable_if_t<std::is_integral_v<T>>,
+        std::enable_if_t<std::is_integral_v<U>>
     >
-    T max(T a, T b)
+    T max(T a, U b)
     {
         return a > b ? a : b;
     }
 
     template <
         typename T,
-        std::enable_if_t<std::is_integral_v<T>>
+        typename U,
+        std::enable_if_t<std::is_integral_v<T>>,
+        std::enable_if_t<std::is_integral_v<U>>
     >
-    T min(T a, T b)
+    T min(T a, U b)
     {
         return a > b ? a : b;
     }
