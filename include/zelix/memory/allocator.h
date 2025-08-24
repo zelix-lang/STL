@@ -29,6 +29,7 @@
 
 #pragma once
 
+#include "zelix/container/delist.h"
 #include "zelix/container/vector.h"
 
 namespace zelix::stl::memory
@@ -103,7 +104,7 @@ namespace zelix::stl::memory
         >
         class lazy_allocator
         {
-            vector<page<T, Capacity, CallDestructors>> pages;
+            stl::pmr::delist<page<T, Capacity, CallDestructors, Allocator>> pages;
             vector<T *> free_list;
 
         public:
