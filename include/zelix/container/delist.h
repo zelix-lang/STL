@@ -29,7 +29,9 @@
 
 #pragma once
 #include "delist.h"
-#include "zelix/memory/allocator.h"
+#include "forward.h"
+#include "zelix/except/out_of_range.h"
+#include "zelix/memory/resource.h"
 
 namespace zelix::stl
 {
@@ -42,11 +44,11 @@ namespace zelix::stl
         template <typename T>
         class __delist_el
         {
+        public:
             T data;
             __delist_el *next = nullptr;
             __delist_el *prev = nullptr;
 
-        public:
             __delist_el() = default;
 
             template <typename ... Args>
