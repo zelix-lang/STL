@@ -106,7 +106,7 @@ namespace zelix::stl::memory
                     atomic_ref_count = other.atomic_ref_count;
                     if (atomic_ref_count)
                     {
-                        ++(*atomic_ref_count); // Increment atomic reference count
+                        atomic_ref_count->fetch_add(1); // Increment atomic reference count
                     }
                 }
                 else
@@ -161,10 +161,19 @@ namespace zelix::stl::memory
 
             ~shared_ptr()
             {
-                *--ref_count;
-                if (*ref_count == 0)
+                if constexpr (Concurrent)
                 {
-                    destroy(); // Destroy the managed object and free memory
+                    if (atomic_ref_count && --(*atomic_ref_count) == 0)
+                    {
+                        destroy();
+                    }
+                }
+                else
+                {
+                    if (ref_count && --(*ref_count) == 0)
+                    {
+                        destroy();
+                    }
                 }
             }
         };
