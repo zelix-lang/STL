@@ -331,6 +331,20 @@ namespace zelix::stl
             }
 
             /**
+             * @brief Removes the last element from the vector and returns it by move.
+             *
+             * Decreases the size and moves the last element out of the vector.
+             * Does not call the destructor for the removed element.
+             *
+             * @return T The last element, moved from the vector.
+             * @note Use with caution: the destructor is not called for the removed element.
+             */
+            T pop_back_move() {
+                --size_;
+                return std::move(data[size_]);
+            }
+
+            /**
              * @brief Removes all elements from the vector.
              *
              * Calls the destructor for each element and resets the size to zero.
