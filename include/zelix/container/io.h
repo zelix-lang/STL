@@ -46,7 +46,7 @@ namespace zelix::stl
         template <
             int FileDescriptor,
             size_t Capacity,
-            size_t CapacityUntilHeap,
+            bool UseHeap = Capacity >= 256,
             typename Allocator = memory::resource<char>,
             typename = std::enable_if_t<
                 std::is_base_of_v<memory::resource<char>, Allocator>
@@ -55,7 +55,7 @@ namespace zelix::stl
         class ostream
         {
     #   ifndef _WIN32
-            ring_buffer<char, Capacity, CapacityUntilHeap, Allocator> buffer; ///< Ring buffer to hold the output data
+            ring_buffer<char, Capacity, UseHeap, Allocator> buffer; ///< Ring buffer to hold the output data
     #   endif
             void do_write(const char *data, const size_t size)
             {
@@ -262,18 +262,18 @@ namespace zelix::stl
 
     template <
         int FileDescriptor,
-        int Capacity,
-        int CapacityUntilHeap
+        size_t Capacity,
+        bool UseHeap = Capacity >= 256
     >
-    using ostream = pmr::ostream<FileDescriptor, Capacity, CapacityUntilHeap>;
+    using ostream = pmr::ostream<FileDescriptor, Capacity, UseHeap>;
 
 #   ifndef _WIN32
     inline constexpr auto endl = "\n"; ///< Newline character for output streams
 #   else
     inline constexpr auto endl = "\r\n"; ///< Newline character for output streams on Windows
 #   endif
-    inline ostream<STDOUT_FILENO, 1024, 1024> stdout; ///< Standard output stream
-    inline ostream<STDERR_FILENO, 1024, 1024> stderr; ///< Standard error stream
+    inline ostream<STDOUT_FILENO, 1024> stdout; ///< Standard output stream
+    inline ostream<STDERR_FILENO, 1024> stderr; ///< Standard error stream
     inline auto &cout = stdout; ///< Alias for standard output stream
     inline auto &cerr = stderr; ///< Alias for standard error stream
 }
