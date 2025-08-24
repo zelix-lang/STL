@@ -61,11 +61,23 @@ namespace zelix::stl::ansi
     namespace bold
     {
         inline constexpr const char bold[] = ANSI_BOLD;
-        inline constexpr const char bright_blue[] = ANSI_BOLD_BRIGHT_BLUE;
-        inline constexpr const char bright_green[] = ANSI_BOLD_BRIGHT_GREEN;
-        inline constexpr const char bright_red[] = ANSI_BOLD_BRIGHT_RED;
-        inline constexpr const char bright_yellow[] = ANSI_BOLD_BRIGHT_YELLOW;
-        inline constexpr const char bright_purple[] = ANSI_BOLD_BRIGHT_PURPLE;
+        inline constexpr const char blue[] = ANSI_BOLD_BRIGHT_BLUE;
+        inline constexpr const char green[] = ANSI_BOLD_BRIGHT_GREEN;
+        inline constexpr const char red[] = ANSI_BOLD_BRIGHT_RED;
+        inline constexpr const char yellow[] = ANSI_BOLD_BRIGHT_YELLOW;
+        inline constexpr const char purple[] = ANSI_BOLD_BRIGHT_PURPLE;
+    }
+
+    namespace bright
+    {
+        inline constexpr const char black[] = ANSI_BRIGHT_BLACK;
+        inline constexpr const char red[] = ANSI_BRIGHT_RED;
+        inline constexpr const char green[] = ANSI_BRIGHT_GREEN;
+        inline constexpr const char yellow[] = ANSI_BRIGHT_YELLOW;
+        inline constexpr const char blue[] = ANSI_BRIGHT_BLUE;
+        inline constexpr const char purple[] = ANSI_BRIGHT_PURPLE;
+        inline constexpr const char cyan[] = ANSI_BRIGHT_CYAN;
+        inline constexpr const char white[] = ANSI_BRIGHT_WHITE;
     }
 
     inline constexpr const char reset[] = ANSI_RESET;
@@ -77,14 +89,6 @@ namespace zelix::stl::ansi
     inline constexpr const char purple[] = ANSI_PURPLE;
     inline constexpr const char cyan[] = ANSI_CYAN;
     inline constexpr const char white[] = ANSI_WHITE;
-    inline constexpr const char bright_black[] = ANSI_BRIGHT_BLACK;
-    inline constexpr const char bright_red[] = ANSI_BRIGHT_RED;
-    inline constexpr const char bright_green[] = ANSI_BRIGHT_GREEN;
-    inline constexpr const char bright_yellow[] = ANSI_BRIGHT_YELLOW;
-    inline constexpr const char bright_blue[] = ANSI_BRIGHT_BLUE;
-    inline constexpr const char bright_purple[] = ANSI_BRIGHT_PURPLE;
-    inline constexpr const char bright_cyan[] = ANSI_BRIGHT_CYAN;
-    inline constexpr const char bright_white[] = ANSI_BRIGHT_WHITE;
     inline constexpr const char underline[] = ANSI_UNDERLINE;
     inline constexpr const char dim[] = ANSI_DIM;
     inline constexpr const char dim_end[] = ANSI_DIM_END;
