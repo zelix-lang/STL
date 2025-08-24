@@ -56,32 +56,36 @@
 #define ANSI_DIM "\e[2m"
 #define ANSI_DIM_END "\e[22m"
 
-namespace zelix::stl
+namespace zelix::stl::ansi
 {
-    constexpr auto ansi_reset = ANSI_RESET;
-    constexpr auto ansi_black = ANSI_BLACK;
-    constexpr auto ansi_red = ANSI_RED;
-    constexpr auto ansi_green = ANSI_GREEN;
-    constexpr auto ansi_yellow = ANSI_YELLOW;
-    constexpr auto ansi_blue = ANSI_BLUE;
-    constexpr auto ansi_purple = ANSI_PURPLE;
-    constexpr auto ansi_cyan = ANSI_CYAN;
-    constexpr auto ansi_white = ANSI_WHITE;
-    constexpr auto ansi_bright_black = ANSI_BRIGHT_BLACK;
-    constexpr auto ansi_bright_red = ANSI_BRIGHT_RED;
-    constexpr auto ansi_bright_green = ANSI_BRIGHT_GREEN;
-    constexpr auto ansi_bright_yellow = ANSI_BRIGHT_YELLOW;
-    constexpr auto ansi_bright_blue = ANSI_BRIGHT_BLUE;
-    constexpr auto ansi_bright_purple = ANSI_BRIGHT_PURPLE;
-    constexpr auto ansi_bright_cyan = ANSI_BRIGHT_CYAN;
-    constexpr auto ansi_bright_white = ANSI_BRIGHT_WHITE;
-    constexpr auto ansi_bold = ANSI_BOLD;
-    constexpr auto ansi_bold_bright_blue = ANSI_BOLD_BRIGHT_BLUE;
-    constexpr auto ansi_bold_bright_green = ANSI_BOLD_BRIGHT_GREEN;
-    constexpr auto ansi_bold_bright_red = ANSI_BOLD_BRIGHT_RED;
-    constexpr auto ansi_bold_bright_yellow = ANSI_BOLD_BRIGHT_YELLOW;
-    constexpr auto ansi_bold_bright_purple = ANSI_BOLD_BRIGHT_PURPLE;
-    constexpr auto ansi_underline = ANSI_UNDERLINE;
-    constexpr auto ansi_dim = ANSI_DIM;
-    constexpr auto ansi_dim_end = ANSI_DIM_END;
+    namespace bold
+    {
+        inline constexpr const char bold[] = ANSI_BOLD;
+        inline constexpr const char bright_blue[] = ANSI_BOLD_BRIGHT_BLUE;
+        inline constexpr const char bright_green[] = ANSI_BOLD_BRIGHT_GREEN;
+        inline constexpr const char bright_red[] = ANSI_BOLD_BRIGHT_RED;
+        inline constexpr const char bright_yellow[] = ANSI_BOLD_BRIGHT_YELLOW;
+        inline constexpr const char bright_purple[] = ANSI_BOLD_BRIGHT_PURPLE;
+    }
+
+    inline constexpr const char reset[] = ANSI_RESET;
+    inline constexpr const char black[] = ANSI_BLACK;
+    inline constexpr const char red[] = ANSI_RED;
+    inline constexpr const char green[] = ANSI_GREEN;
+    inline constexpr const char yellow[] = ANSI_YELLOW;
+    inline constexpr const char blue[] = ANSI_BLUE;
+    inline constexpr const char purple[] = ANSI_PURPLE;
+    inline constexpr const char cyan[] = ANSI_CYAN;
+    inline constexpr const char white[] = ANSI_WHITE;
+    inline constexpr const char bright_black[] = ANSI_BRIGHT_BLACK;
+    inline constexpr const char bright_red[] = ANSI_BRIGHT_RED;
+    inline constexpr const char bright_green[] = ANSI_BRIGHT_GREEN;
+    inline constexpr const char bright_yellow[] = ANSI_BRIGHT_YELLOW;
+    inline constexpr const char bright_blue[] = ANSI_BRIGHT_BLUE;
+    inline constexpr const char bright_purple[] = ANSI_BRIGHT_PURPLE;
+    inline constexpr const char bright_cyan[] = ANSI_BRIGHT_CYAN;
+    inline constexpr const char bright_white[] = ANSI_BRIGHT_WHITE;
+    inline constexpr const char underline[] = ANSI_UNDERLINE;
+    inline constexpr const char dim[] = ANSI_DIM;
+    inline constexpr const char dim_end[] = ANSI_DIM_END;
 }
