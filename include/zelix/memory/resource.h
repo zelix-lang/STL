@@ -103,7 +103,7 @@ namespace zelix::stl::memory
         {
             void *mem = raw(sizeof(T));
             new (mem) T(stl::forward<Args>(args)...);
-            return mem;
+            return static_cast<T *>(mem);
         }
 
         static void deallocate_raw(void *ptr)
