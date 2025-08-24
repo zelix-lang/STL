@@ -256,6 +256,6 @@ namespace zelix::stl
 #   endif
     inline ostream<STDOUT_FILENO, 1024> stdout; ///< Standard output stream
     inline ostream<STDERR_FILENO, 1024> stderr; ///< Standard error stream
-    inline auto cout = stdout; ///< Alias for standard output stream
-    inline auto cerr = stderr; ///< Alias for standard error stream
+    inline auto &cout = stdout; ///< Alias for standard output stream
+    inline auto &cerr = stderr; ///< Alias for standard error stream
 }
