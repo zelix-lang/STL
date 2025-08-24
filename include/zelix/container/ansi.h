@@ -29,7 +29,6 @@
 
 #pragma once
 
-
 #define ANSI_RESET "\033[0m"
 #define ANSI_BLACK "\033[30m"
 #define ANSI_RED "\033[31m"
@@ -56,3 +55,33 @@
 #define ANSI_UNDERLINE "\033[4m"
 #define ANSI_DIM "\e[2m"
 #define ANSI_DIM_END "\e[22m"
+
+namespace zelix::stl
+{
+    constexpr auto ansi_reset = ANSI_RESET;
+    constexpr auto ansi_black = ANSI_BLACK;
+    constexpr auto ansi_red = ANSI_RED;
+    constexpr auto ansi_green = ANSI_GREEN;
+    constexpr auto ansi_yellow = ANSI_YELLOW;
+    constexpr auto ansi_blue = ANSI_BLUE;
+    constexpr auto ansi_purple = ANSI_PURPLE;
+    constexpr auto ansi_cyan = ANSI_CYAN;
+    constexpr auto ansi_white = ANSI_WHITE;
+    constexpr auto ansi_bright_black = ANSI_BRIGHT_BLACK;
+    constexpr auto ansi_bright_red = ANSI_BRIGHT_RED;
+    constexpr auto ansi_bright_green = ANSI_BRIGHT_GREEN;
+    constexpr auto ansi_bright_yellow = ANSI_BRIGHT_YELLOW;
+    constexpr auto ansi_bright_blue = ANSI_BRIGHT_BLUE;
+    constexpr auto ansi_bright_purple = ANSI_BRIGHT_PURPLE;
+    constexpr auto ansi_bright_cyan = ANSI_BRIGHT_CYAN;
+    constexpr auto ansi_bright_white = ANSI_BRIGHT_WHITE;
+    constexpr auto ansi_bold = ANSI_BOLD;
+    constexpr auto ansi_bold_bright_blue = ANSI_BOLD_BRIGHT_BLUE;
+    constexpr auto ansi_bold_bright_green = ANSI_BOLD_BRIGHT_GREEN;
+    constexpr auto ansi_bold_bright_red = ANSI_BOLD_BRIGHT_RED;
+    constexpr auto ansi_bold_bright_yellow = ANSI_BOLD_BRIGHT_YELLOW;
+    constexpr auto ansi_bold_bright_purple = ANSI_BOLD_BRIGHT_PURPLE;
+    constexpr auto ansi_underline = ANSI_UNDERLINE;
+    constexpr auto ansi_dim = ANSI_DIM;
+    constexpr auto ansi_dim_end = ANSI_DIM_END;
+}
