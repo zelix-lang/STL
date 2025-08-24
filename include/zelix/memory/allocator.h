@@ -96,7 +96,7 @@ namespace zelix::stl::memory
         template <
             typename T,
             size_t Capacity = 256,
-            bool CallDestructors = false,
+            bool CallDestructors = true,
             typename Allocator = resource<T>,
             typename = std::enable_if_t<
                 std::is_base_of_v<resource<T>, Allocator>
