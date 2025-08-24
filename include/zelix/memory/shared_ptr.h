@@ -159,6 +159,11 @@ namespace zelix::stl::memory
                 return ptr; // Access the managed object
             }
 
+            bool operator==(const shared_ptr &other) const
+            {
+                return *ptr == *other.ptr; // Compare the managed objects
+            }
+
             ~shared_ptr()
             {
                 if constexpr (Concurrent)
