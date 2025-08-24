@@ -47,6 +47,11 @@
 #define ANSI_BRIGHT_CYAN "\033[96m"
 #define ANSI_BRIGHT_WHITE "\033[97m"
 #define ANSI_BOLD "\033[1m"
+#define ANSI_BOLD_BLUE "\033[1;34m"
+#define ANSI_BOLD_GREEN "\033[1;32m"
+#define ANSI_BOLD_RED "\033[1;31m"
+#define ANSI_BOLD_YELLOW "\033[1;33m"
+#define ANSI_BOLD_PURPLE "\033[1;35m"
 #define ANSI_BOLD_BRIGHT_BLUE "\033[1;94m"
 #define ANSI_BOLD_BRIGHT_GREEN "\033[1;92m"
 #define ANSI_BOLD_BRIGHT_RED "\033[1;91m"
@@ -61,11 +66,20 @@ namespace zelix::stl::ansi
     namespace bold
     {
         inline constexpr const char bold[] = ANSI_BOLD;
-        inline constexpr const char blue[] = ANSI_BOLD_BRIGHT_BLUE;
-        inline constexpr const char green[] = ANSI_BOLD_BRIGHT_GREEN;
-        inline constexpr const char red[] = ANSI_BOLD_BRIGHT_RED;
-        inline constexpr const char yellow[] = ANSI_BOLD_BRIGHT_YELLOW;
-        inline constexpr const char purple[] = ANSI_BOLD_BRIGHT_PURPLE;
+        inline constexpr const char blue[] = ANSI_BOLD_BLUE;
+        inline constexpr const char green[] = ANSI_BOLD_GREEN;
+        inline constexpr const char red[] = ANSI_BOLD_RED;
+        inline constexpr const char yellow[] = ANSI_BOLD_YELLOW;
+        inline constexpr const char purple[] = ANSI_BOLD_PURPLE;
+
+        namespace bright
+        {
+            inline constexpr const char blue[] = ANSI_BOLD_BRIGHT_BLUE;
+            inline constexpr const char green[] = ANSI_BOLD_BRIGHT_GREEN;
+            inline constexpr const char red[] = ANSI_BOLD_BRIGHT_RED;
+            inline constexpr const char yellow[] = ANSI_BOLD_BRIGHT_YELLOW;
+            inline constexpr const char purple[] = ANSI_BOLD_BRIGHT_PURPLE;
+        }
     }
 
     namespace bright
