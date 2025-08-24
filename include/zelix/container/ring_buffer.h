@@ -33,194 +33,237 @@
 
 namespace zelix::stl
 {
-    /**
-     * \brief A fixed-size ring buffer (circular vector) container.
-     *
-     * \tparam T   Type of elements stored.
-     * \tparam Max Maximum number of elements the container can hold.
-     *
-     * Elements are stored in a fixed-size array. When the buffer is full,
-     * new elements overwrite the oldest ones.
-     */
-    template <typename T, size_t Max>
-    class ring_buffer
+    namespace pmr
     {
-        T data[Max];      ///< Fixed-size array to hold the elements
-        size_t head = 0;  ///< The index of the next element to be added
-
-    public:
-        explicit ring_buffer()
-        {}
-
         /**
-         * \brief Adds an element to the end of the ring buffer.
+         * \brief A fixed-size ring buffer (circular vector) container.
          *
-         * If the buffer is full, the oldest element is overwritten.
-         * \param value The element to add.
+         * \tparam T   Type of elements stored.
+         * \tparam Max Maximum number of elements the container can hold.
+         *
+         * Elements are stored in a fixed-size array. When the buffer is full,
+         * new elements overwrite the oldest ones.
          */
-        void push_back(T &value)
+        template <
+            typename T,
+            size_t Max,
+            size_t CapacityUntilHeap,
+            typename Allocator = memory::resource<char>,
+            typename = std::enable_if_t<
+                std::is_base_of_v<memory::resource<char>, Allocator>
+            >
+        >
+        class ring_buffer
         {
-            if (head > Max)
+            using data_type = std::conditional_t<
+                CapacityUntilHeap >= Max,
+                T*,          // heap allocation
+                T[Max]       // stack allocation
+            >;
+
+            data_type data;
+            size_t head = 0;  ///< The index of the next element to be added
+
+        public:
+            explicit ring_buffer()
             {
-                head = 0; // Reset the head if it exceeds the maximum size
+                if constexpr (CapacityUntilHeap >= Max)
+                {
+                    data = Allocator::arr(Max);
+                }
             }
 
-            data[head++] = value; // Add the element if there's space
-        }
-
-        template <typename... Args>
-        void emplace_back(Args&&... args)
-        {
-            if (head >= Max)
+            /**
+             * \brief Adds an element to the end of the ring buffer.
+             *
+             * If the buffer is full, the oldest element is overwritten.
+             * \param value The element to add.
+             */
+            void push_back(T &value)
             {
-                head = 0; // Reset the head if it exceeds the maximum size
+                if (head > Max)
+                {
+                    head = 0; // Reset the head if it exceeds the maximum size
+                }
+
+                data[head++] = value; // Add the element if there's space
             }
 
-            new (&this->data[head]) T(stl::forward<Args>(args)...);
-            ++head;
-        }
-
-        /**
-         * \brief Accesses the element at the given index.
-         *
-         * \param index Index of the element to access.
-         * \return Reference to the element at the specified index.
-         * \throws except::exception if index is out of range.
-         */
-        T &operator[](size_t index)
-        {
-            if (index >= head)
-                throw except::out_of_range("Index out of range");
-
-            return data[index];
-        }
-
-        /**
-         * \brief Accesses the element at the given index (const version).
-         *
-         * \param index Index of the element to access.
-         * \return Const reference to the element at the specified index.
-         * \throws except::exception if index is out of range.
-         */
-        T &operator[](size_t index) const
-        {
-            if (index >= head)
-                throw except::out_of_range("Index out of range");
-
-            return data[index];
-        }
-
-        /**
-         * \brief Returns a pointer to the beginning of the data array.
-         *
-         * \return Pointer to the first element.
-         */
-        T *begin()
-        {
-            return data; // Return a pointer to the beginning of the data array
-        }
-
-        /**
-         * \brief Returns a pointer to the end of the data array.
-         *
-         * \return Pointer to one past the last element.
-         */
-        T *end()
-        {
-            return data + head; // Return a pointer to the end of the data array
-        }
-
-        /**
-         * \brief Checks if the ring buffer is full.
-         *
-         * \return True if the buffer is full, false otherwise.
-         */
-        [[nodiscard]] bool full() const
-        {
-            return head >= Max; // Check if the ring vector is full
-        }
-
-        /**
-         * \brief Checks if the ring buffer is empty.
-         *
-         * \return True if empty, false otherwise.
-         */
-        [[nodiscard]] bool empty() const
-        {
-            return head == 0; // Check if the ring vector is empty
-        }
-
-        /**
-         * \brief Returns the number of elements in the ring buffer.
-         *
-         * \return The current size.
-         */
-        [[nodiscard]] size_t size() const
-        {
-            return head;
-        }
-
-        /**
-         * \brief Clears the ring buffer.
-         *
-         * Resets the buffer to an empty state by setting the head index to zero.
-         */
-        void flush()
-        {
-            head = 0; // Reset the head to clear the buffer
-        }
-
-        /**
-         * \brief Returns the current head position in the ring buffer.
-         *
-         * \return The index where the next element will be inserted.
-         */
-        [[nodiscard]] size_t pos() const
-        {
-            return head; // Return the current position (head index)
-        }
-
-        /**
-         * \brief Advances the head index by one.
-         *
-         * Moves the head forward, potentially exceeding the buffer size.
-         * Caller is responsible for bounds checking if needed.
-         */
-        void advance()
-        {
-            if (head >= Max)
+            template <typename... Args>
+            void emplace_back(Args&&... args)
             {
-                head = 0; // Reset the head if it exceeds the maximum size
-                return;
+                if (head >= Max)
+                {
+                    head = 0; // Reset the head if it exceeds the maximum size
+                }
+
+                new (&this->data[head]) T(stl::forward<Args>(args)...);
+                ++head;
             }
 
-            head++;
-        }
+            /**
+             * \brief Accesses the element at the given index.
+             *
+             * \param index Index of the element to access.
+             * \return Reference to the element at the specified index.
+             * \throws except::exception if index is out of range.
+             */
+            T &operator[](size_t index)
+            {
+                if (index >= head)
+                    throw except::out_of_range("Index out of range");
 
-        /**
-         * \brief Returns a pointer to the internal data array.
-         *
-         * \return Pointer to the internal data array.
-         */
-        T *ptr()
-        {
-            return data; // Return a pointer to the internal data array
-        }
+                if constexpr (CapacityUntilHeap >= Max)
+                {
+                    return data[index];
+                } else {
+                    return data[index];
+                }
+            }
 
-        /**
-         * \brief Writes a block of elements into the ring buffer.
-         *
-         * \param buf   Pointer to the source buffer containing elements to write.
-         * \param count Number of elements to write from the source buffer.
-         *
-         * \note It is the caller's responsibility to ensure that there is enough space
-         *       in the ring buffer to accommodate the elements being written.
-         */
-        void write(const T *buf, const size_t count)
-        {
-            // Warning: it is the caller's responsibility to do bounds checking
-            memcpy(data + head, buf, count * sizeof(T));
-            head += count;
-        }
-    };
+            /**
+             * \brief Accesses the element at the given index (const version).
+             *
+             * \param index Index of the element to access.
+             * \return Const reference to the element at the specified index.
+             * \throws except::exception if index is out of range.
+             */
+            T &operator[](size_t index) const
+            {
+                if (index >= head)
+                    throw except::out_of_range("Index out of range");
+
+                if constexpr (CapacityUntilHeap >= Max)
+                {
+                    return data[index];
+                } else {
+                    return data[index];
+                }
+            }
+
+            /**
+             * \brief Returns a pointer to the beginning of the data array.
+             *
+             * \return Pointer to the first element.
+             */
+            T *begin()
+            {
+                return data; // Return a pointer to the beginning of the data array
+            }
+
+            /**
+             * \brief Returns a pointer to the end of the data array.
+             *
+             * \return Pointer to one past the last element.
+             */
+            T *end()
+            {
+                return data + head; // Return a pointer to the end of the data array
+            }
+
+            /**
+             * \brief Checks if the ring buffer is full.
+             *
+             * \return True if the buffer is full, false otherwise.
+             */
+            [[nodiscard]] bool full() const
+            {
+                return head >= Max; // Check if the ring vector is full
+            }
+
+            /**
+             * \brief Checks if the ring buffer is empty.
+             *
+             * \return True if empty, false otherwise.
+             */
+            [[nodiscard]] bool empty() const
+            {
+                return head == 0; // Check if the ring vector is empty
+            }
+
+            /**
+             * \brief Returns the number of elements in the ring buffer.
+             *
+             * \return The current size.
+             */
+            [[nodiscard]] size_t size() const
+            {
+                return head;
+            }
+
+            /**
+             * \brief Clears the ring buffer.
+             *
+             * Resets the buffer to an empty state by setting the head index to zero.
+             */
+            void flush()
+            {
+                head = 0; // Reset the head to clear the buffer
+            }
+
+            /**
+             * \brief Returns the current head position in the ring buffer.
+             *
+             * \return The index where the next element will be inserted.
+             */
+            [[nodiscard]] size_t pos() const
+            {
+                return head; // Return the current position (head index)
+            }
+
+            /**
+             * \brief Advances the head index by one.
+             *
+             * Moves the head forward, potentially exceeding the buffer size.
+             * Caller is responsible for bounds checking if needed.
+             */
+            void advance()
+            {
+                if (head >= Max)
+                {
+                    head = 0; // Reset the head if it exceeds the maximum size
+                    return;
+                }
+
+                head++;
+            }
+
+            /**
+             * \brief Returns a pointer to the internal data array.
+             *
+             * \return Pointer to the internal data array.
+             */
+            T *ptr()
+            {
+                return data; // Return a pointer to the internal data array
+            }
+
+            /**
+             * \brief Writes a block of elements into the ring buffer.
+             *
+             * \param buf   Pointer to the source buffer containing elements to write.
+             * \param count Number of elements to write from the source buffer.
+             *
+             * \note It is the caller's responsibility to ensure that there is enough space
+             *       in the ring buffer to accommodate the elements being written.
+             */
+            void write(const T *buf, const size_t count)
+            {
+                // Warning: it is the caller's responsibility to do bounds checking
+                memcpy(data + head, buf, count * sizeof(T));
+                head += count;
+            }
+
+            ~ring_buffer()
+            {
+                if constexpr (CapacityUntilHeap >= Max)
+                {
+                    Allocator::template deallocate<false>(data);
+                }
+            }
+        };
+    }
+
+    template <typename T, size_t Max, size_t CapacityUntilHeap>
+    using ring_buffer = pmr::ring_buffer<T, Max, CapacityUntilHeap>;
 }
