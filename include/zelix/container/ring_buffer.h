@@ -47,7 +47,7 @@ namespace zelix::stl
         template <
             typename T,
             size_t Max,
-            size_t CapacityUntilHeap,
+            bool UseHeap,
             typename Allocator = memory::resource<char>,
             typename = std::enable_if_t<
                 std::is_base_of_v<memory::resource<char>, Allocator>
@@ -56,7 +56,7 @@ namespace zelix::stl
         class ring_buffer
         {
             using data_type = std::conditional_t<
-                CapacityUntilHeap >= Max,
+                UseHeap,
                 T*,          // heap allocation
                 T[Max]       // stack allocation
             >;
@@ -67,7 +67,7 @@ namespace zelix::stl
         public:
             explicit ring_buffer()
             {
-                if constexpr (CapacityUntilHeap >= Max)
+                if constexpr (UseHeap)
                 {
                     data = Allocator::arr(Max);
                 }
@@ -113,7 +113,7 @@ namespace zelix::stl
                 if (index >= head)
                     throw except::out_of_range("Index out of range");
 
-                if constexpr (CapacityUntilHeap >= Max)
+                if constexpr (UseHeap)
                 {
                     return data[index];
                 } else {
@@ -133,7 +133,7 @@ namespace zelix::stl
                 if (index >= head)
                     throw except::out_of_range("Index out of range");
 
-                if constexpr (CapacityUntilHeap >= Max)
+                if constexpr (UseHeap)
                 {
                     return data[index];
                 } else {
@@ -256,7 +256,7 @@ namespace zelix::stl
 
             ~ring_buffer()
             {
-                if constexpr (CapacityUntilHeap >= Max)
+                if constexpr (UseHeap)
                 {
                     Allocator::template deallocate<false>(data);
                 }
@@ -264,6 +264,6 @@ namespace zelix::stl
         };
     }
 
-    template <typename T, size_t Max, size_t CapacityUntilHeap>
-    using ring_buffer = pmr::ring_buffer<T, Max, CapacityUntilHeap>;
+    template <typename T, size_t Max, bool UseHeap>
+    using ring_buffer = pmr::ring_buffer<T, Max, UseHeap>;
 }
