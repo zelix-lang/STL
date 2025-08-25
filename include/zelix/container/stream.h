@@ -33,104 +33,118 @@
 
 namespace zelix::stl
 {
-    template <typename T>
-    class stream
+    namespace pmr
     {
-        vector<T> data_; ///< Vector to hold the stream data
-        size_t pos_ = 0; ///< Current position in the stream
-
-    public:
-        explicit stream(vector<T>& data) :
-            data_(stl::move(data)) {}
-
-        explicit stream(vector<T>&& data) :
-            data_(stl::move(data)) {}
-
-        /**
-         * @brief Constructs an element in-place at the end of the vector.
-         *
-         * @tparam Args Argument types for T's constructor.
-         * @param args Arguments to forward to T's constructor.
-         */
-        template <typename... Args>
-        void emplace_back(Args&&... args)
+        template <
+            typename T,
+            double GrowthFactor = 1.8,
+            size_t InitialCapacity = 25,
+            typename Allocator = memory::resource<T>,
+            typename = std::enable_if_t<
+                std::is_base_of_v<memory::resource<T>, Allocator>
+            >
+        >
+        class stream
         {
-            data_.emplace_back(stl::forward<Args>(args)...);
-        }
+            vector<T, GrowthFactor, InitialCapacity, Allocator> data_; ///< Vector to hold the stream data
+            size_t pos_ = 0; ///< Current position in the stream
 
-        void push(const T &value)
-        {
-            data_.push_back(value); ///< Add a new value to the stream
-        }
+        public:
+            explicit stream(vector<T>& data) :
+                data_(stl::move(data)) {}
 
-        optional<T> peek(const size_t n)
-        {
-            if (pos_ + n >= data_.size())
+            explicit stream(vector<T>&& data) :
+                data_(stl::move(data)) {}
+
+            /**
+             * @brief Constructs an element in-place at the end of the vector.
+             *
+             * @tparam Args Argument types for T's constructor.
+             * @param args Arguments to forward to T's constructor.
+             */
+            template <typename... Args>
+            void emplace_back(Args&&... args)
             {
-                return optional<T>::none(); ///< Return nullopt if no more elements
+                data_.emplace_back(stl::forward<Args>(args)...);
             }
 
-            return optional<T>::some(data_[pos_ + n]); ///< Return the next element without advancing
-        }
-
-        optional<T> peek()
-        {
-           return peek(0); ///< Peek at the current element without advancing
-        }
-
-		optional<T> curr()
-        {
-            if (pos_ == 0 || pos_ > data_.size())
+            void push(const T &value)
             {
-                return optional<T>::none(); ///< Return nullopt if no current element
+                data_.push_back(value); ///< Add a new value to the stream
             }
 
-            return optional<T>::some(data_[pos_ - 1]); ///< Return the current element
-        }
-
-        optional<T> next()
-        {
-            if (pos_ >= data_.size())
+            optional<T> peek(const size_t n)
             {
-                return optional<T>::none(); ///< Return nullopt if no more elements
+                if (pos_ + n >= data_.size())
+                {
+                    return optional<T>::none(); ///< Return nullopt if no more elements
+                }
+
+                return optional<T>::some(data_[pos_ + n]); ///< Return the next element without advancing
             }
 
-            return optional<T>::some(data_[pos_++]); ///< Return the next element and advance the position
-        }
-
-		vector<T> &ptr()
-        {
-            return data_; ///< Return a reference to the underlying vector
-        }
-
-        void reset()
-        {
-            pos_ = 0; ///< Reset the position to the start of the stream
-        }
-
-        [[nodiscard]] size_t pos() const
-        {
-            return pos_; ///< Return the current position in the stream
-        }
-
-        void set_pos(const size_t pos)
-        {
-            if (pos > data_.size())
+            optional<T> peek()
             {
-                throw except::exception("Position out of bounds"); ///< Throw an error if the position is invalid
+               return peek(0); ///< Peek at the current element without advancing
             }
 
-            pos_ = pos; ///< Set the current position in the stream
-        }
+		    optional<T> curr()
+            {
+                if (pos_ == 0 || pos_ > data_.size())
+                {
+                    return optional<T>::none(); ///< Return nullopt if no current element
+                }
 
-        [[nodiscard]] bool empty() const
-        {
-            return data_.empty(); ///< Check if the stream is empty
-        }
+                return optional<T>::some(data_[pos_ - 1]); ///< Return the current element
+            }
 
-        [[nodiscard]] size_t size() const
-        {
-            return data_.size(); ///< Return the size of the stream
-        }
-    };
+            optional<T> next()
+            {
+                if (pos_ >= data_.size())
+                {
+                    return optional<T>::none(); ///< Return nullopt if no more elements
+                }
+
+                return optional<T>::some(data_[pos_++]); ///< Return the next element and advance the position
+            }
+
+		    vector<T> &ptr()
+            {
+                return data_; ///< Return a reference to the underlying vector
+            }
+
+            void reset()
+            {
+                pos_ = 0; ///< Reset the position to the start of the stream
+            }
+
+            [[nodiscard]] size_t pos() const
+            {
+                return pos_; ///< Return the current position in the stream
+            }
+
+            void set_pos(const size_t pos)
+            {
+                if (pos > data_.size())
+                {
+                    throw except::exception("Position out of bounds"); ///< Throw an error if the position is invalid
+                }
+
+                pos_ = pos; ///< Set the current position in the stream
+            }
+
+            [[nodiscard]] bool empty() const
+            {
+                return data_.empty(); ///< Check if the stream is empty
+            }
+
+            [[nodiscard]] size_t size() const
+            {
+                return data_.size(); ///< Return the size of the stream
+            }
+        };
+    }
+
+    template <typename T, double GrowthFactor = 1.8, size_t InitialCapacity = 25>
+    using stream = pmr::stream<T, GrowthFactor, InitialCapacity>;
 }
