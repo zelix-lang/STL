@@ -84,6 +84,13 @@ namespace zelix::stl
              */
             void resize(const size_t new_size)
             {
+                if (!data)
+                {
+                    data = Allocator::arr(new_size);
+                    capacity_ = new_size;
+                    return;
+                }
+
                 data = Allocator::reallocate(data, size_, new_size);
                 capacity_ = new_size;
             }
