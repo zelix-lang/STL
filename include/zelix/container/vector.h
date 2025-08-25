@@ -61,7 +61,7 @@ namespace zelix::stl
         >
         class vector
         {
-            bool initialized = false; ///< Indicates if the internal storage has been initialized.
+            bool initialized_ = false; ///< Indicates if the internal storage has been initialized.
             T* data;        ///< Pointer to the internal storage array.
             size_t size_ = 0;         ///< Number of elements currently stored.
             size_t capacity_;    ///< Current capacity of the internal storage.
@@ -72,7 +72,7 @@ namespace zelix::stl
              */
             void init()
             {
-                initialized = true;
+                initialized_ = true;
                 capacity_ = InitialCapacity;
                 data = Allocator::arr(capacity_);
             }
@@ -94,7 +94,7 @@ namespace zelix::stl
              */
             void destroy()
             {
-                if (initialized)
+                if (initialized_)
                 {
                     // Trivial-copyable optimization
                     if constexpr (!std::is_trivially_copyable_v<T>)
@@ -115,31 +115,31 @@ namespace zelix::stl
              * Asserts that GrowthFactor is greater than 1.0.
              */
             vector()
-                : initialized(false), data(nullptr), size_(0), capacity_(10)
+                : initialized_(false), data(nullptr), size_(0), capacity_(10)
             {
                 static_assert(GrowthFactor > 1.0, "Growth factor must be greater than 1.0");
             }
 
             vector(vector&& other) noexcept
-                : initialized(other.initialized)
+                : initialized_(other.initialized_)
                 , data(other.data)
                 , size_(other.size_)
                 , capacity_(other.capacity_)
             {
                 other.data = nullptr;
-                other.initialized = false;
+                other.initialized_ = false;
                 other.size_ = 0;
                 other.capacity_ = 0;
             }
 
             vector(vector& other) noexcept
-                : initialized(other.initialized)
+                : initialized_(other.initialized_)
                 , data(other.data)
                 , size_(other.size_)
                 , capacity_(other.capacity_)
             {
                 other.data = nullptr;
-                other.initialized = false;
+                other.initialized_ = false;
                 other.size_ = 0;
                 other.capacity_ = 0;
             }
@@ -149,7 +149,7 @@ namespace zelix::stl
                 if (this != &other)
                 {
                     destroy();
-                    initialized = other.initialized;
+                    initialized_ = other.initialized_;
                     size_ = other.size_;
                     capacity_ = other.capacity_;
 
@@ -185,9 +185,9 @@ namespace zelix::stl
             void push_back(T &value)
             {
 #           if defined(__GNUC__) || defined(__clang__)
-                if (__builtin_expect(initialized == 0, 0))
+                if (__builtin_expect(initialized_ == 0, 0))
 #           else
-                if (!initialized)
+                if (!initialized_)
 #           endif
                 {
                     init();
@@ -210,9 +210,9 @@ namespace zelix::stl
             void push_back(T &&value)
             {
 #           if defined(__GNUC__) || defined(__clang__)
-                if (__builtin_expect(initialized == 0, 0))
+                if (__builtin_expect(initialized_ == 0, 0))
 #           else
-                if (!initialized)
+                if (!initialized_)
 #           endif
                 {
                     init();
@@ -235,9 +235,9 @@ namespace zelix::stl
             void push_back(const T &value)
             {
 #           if defined(__GNUC__) || defined(__clang__)
-                if (__builtin_expect(initialized == 0, 0))
+                if (__builtin_expect(initialized_ == 0, 0))
 #           else
-                if (!initialized)
+                if (!initialized_)
 #           endif
                 {
                     init();
@@ -261,9 +261,9 @@ namespace zelix::stl
             [[deprecated]] void push_back(const T &&value)
             {
 #           if defined(__GNUC__) || defined(__clang__)
-                if (__builtin_expect(initialized == 0, 0))
+                if (__builtin_expect(initialized_ == 0, 0))
 #           else
-                if (!initialized)
+                if (!initialized_)
 #           endif
                 {
                     init();
@@ -288,9 +288,9 @@ namespace zelix::stl
             void emplace_back(Args&&... args)
             {
 #           if defined(__GNUC__) || defined(__clang__)
-                if (__builtin_expect(initialized == 0, 0))
+                if (__builtin_expect(initialized_ == 0, 0))
 #           else
-                if (!initialized)
+                if (!initialized_)
 #           endif
                 {
                     init();
@@ -321,10 +321,10 @@ namespace zelix::stl
                     data[size_].~T(); // Call destructor explicitly
 
                     // Free memory if we reached 0 elements
-                    if (size_ == 0 && initialized)
+                    if (size_ == 0 && initialized_)
                     {
                         destroy();
-                        initialized = false;
+                        initialized_ = false;
                         data = nullptr;
                         capacity_ = 0;
                     }
@@ -419,13 +419,13 @@ namespace zelix::stl
                     destroy();
 
                     // Move resources from other
-                    this->initialized = other.initialized;
+                    this->initialized_ = other.initialized_;
                     this->data = other.data;
                     this->size_ = other.size_;
                     this->capacity_ = other.capacity_;
 
                     // Reset the other vector
-                    other.initialized = false;
+                    other.initialized_ = false;
                     other.data = nullptr;
                     other.size_ = 0;
                     other.capacity_ = 0;
@@ -445,9 +445,9 @@ namespace zelix::stl
             T &operator[](size_t index)
             {
 #           if defined(__GNUC__) || defined(__clang__)
-                if (__builtin_expect(initialized == 0, 0))
+                if (__builtin_expect(initialized_ == 0, 0))
 #           else
-                if (!initialized)
+                if (!initialized_)
 #           endif
                     throw except::uninitialized_memory("Early access to vector");
 
@@ -468,9 +468,9 @@ namespace zelix::stl
             T &operator[](size_t index) const
             {
 #           if defined(__GNUC__) || defined(__clang__)
-                if (__builtin_expect(initialized == 0, 0))
+                if (__builtin_expect(initialized_ == 0, 0))
 #           else
-                if (!initialized)
+                if (!initialized_)
 #           endif
                     throw except::uninitialized_memory("Early access to vector");
 
@@ -552,7 +552,7 @@ namespace zelix::stl
                 if (new_capacity > capacity_)
                 {
                     resize(new_capacity);
-                    initialized = true;
+                    initialized_ = true;
                 }
             }
 
@@ -566,9 +566,9 @@ namespace zelix::stl
             T &ref_at(const size_t index)
             {
 #           if defined(__GNUC__) || defined(__clang__)
-                if (__builtin_expect(initialized == 0, 0))
+                if (__builtin_expect(initialized_ == 0, 0))
 #           else
-                if (!initialized)
+                if (!initialized_)
 #           endif
                     throw except::uninitialized_memory("Early access to vector");
 
@@ -606,6 +606,16 @@ namespace zelix::stl
             [[nodiscard]] bool empty()
             {
                 return size_ == 0; // Check if the vector is empty
+            }
+
+            /**
+             * @brief Checks if the vector has been initialized.
+             *
+             * @return true if initialized, false otherwise.
+             */
+            [[nodiscard]] bool initialized() const
+            {
+                return initialized_;
             }
 
             /**
