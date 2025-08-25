@@ -53,7 +53,7 @@ namespace zelix::stl
         template <
             typename T,
             double GrowthFactor = 1.8,
-            double InitialCapacity = 25,
+            size_t InitialCapacity = 25,
             typename Allocator = memory::resource<T>,
             typename = std::enable_if_t<
                 std::is_base_of_v<memory::resource<T>, Allocator>
@@ -618,6 +618,6 @@ namespace zelix::stl
         };
     }
 
-    template <typename T, double GrowthFactor = 1.8, double InitialCapacity = 25>
+    template <typename T, double GrowthFactor = 1.8, size_t InitialCapacity = 25>
     using vector = pmr::vector<T, GrowthFactor, InitialCapacity, memory::resource<T>>; ///< Default vector type using the default allocator
 }
