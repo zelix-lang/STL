@@ -39,7 +39,7 @@ namespace zelix::stl
     namespace pmr
     {
         /**
-         * @brief Internal node element for delist.
+         * @brief Internal node element for list.
          * @tparam T Type of the stored value.
          */
         template <typename T>
