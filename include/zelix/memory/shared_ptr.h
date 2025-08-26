@@ -25,8 +25,10 @@
 
 #pragma once
 #include <atomic>
+#include <tuple>
 #include <type_traits>
 
+#include "array_allocator.h"
 #include "resource.h"
 #include "zelix/container/forward.h"
 
@@ -37,11 +39,22 @@ namespace zelix::stl::memory
         template <
             typename T,
             bool Concurrent,
-            typename Allocator = resource<T>,
+            typename Allocator = std::conditional_t<
+                std::is_array_v<T>,
+                array_resource<T>,
+                resource<T>
+            >,
             typename ARefCountAllocator = resource<std::atomic<int>>,
             typename RefCountAllocator = resource<int>,
             typename = std::enable_if_t<
-                std::is_base_of_v<resource<T>, Allocator>
+                std::is_base_of_v<
+                    std::conditional_t<
+                        std::is_array_v<T>,
+                        array_resource<std::remove_extent_t<T>>,
+                        resource<T>
+                    >,
+                    Allocator
+                >
             >,
             typename = std::enable_if_t<
                 std::is_base_of_v<resource<std::atomic<int>>, ARefCountAllocator>
@@ -78,7 +91,35 @@ namespace zelix::stl::memory
             template <typename ...Args>
             shared_ptr(Args &&...args)
             {
-                ptr = Allocator::allocate(stl::forward<Args>(args)...);
+                if constexpr (std::is_array_v<T>)
+                {
+                    ptr = Allocator::allocate(std::extent_v<T>);
+
+                    // Move all elements
+                    static_assert(sizeof...(args) == 1,
+                           "Array case expects exactly one arg");
+
+                    auto&& arr = std::get<0>(std::forward_as_tuple(args...));
+                    constexpr size_t N = std::extent_v<T>;
+
+                    for (std::size_t i = 0; i < N; ++i)
+                    {
+                        static_assert(
+                            std::is_convertible_v<
+                                std::remove_reference_t<decltype(arr[i])>,
+                                std::remove_extent_t<T>
+                            >,
+                            "Array element type mismatch"
+                        );
+
+                        const auto &el = arr[i];
+                        ptr[i] = el;
+                    }
+                }
+                else
+                {
+                    ptr = Allocator::allocate(stl::forward<Args>(args)...);
+                }
 
                 if constexpr (Concurrent)
                 {
