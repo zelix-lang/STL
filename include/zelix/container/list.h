@@ -230,6 +230,45 @@ namespace zelix::stl
                 return len == 0;
             }
 
+            void erase(const size_t n)
+            {
+                if (n >= len) throw except::out_of_range("Index out of range");
+                len--;
+                __list_el<T> prev = nullptr;
+                auto current = head;
+
+                // Iterate over the list to find the nth node
+                size_t i = 0;
+                while (current)
+                {
+                    if (i == n)
+                    {
+                        // Edge case: removing head
+                        if (prev != nullptr)
+                        {
+                            prev->next = current->next;
+                            break;
+                        }
+
+                        head = current->next;
+                        break;
+                    }
+
+                    prev = current;
+                    current = current->next;
+                    i++;
+                }
+
+                // Update the tail accordingly
+                if (current == tail)
+                {
+                    tail = prev;
+                }
+
+                // Deallocate the removed node
+                Allocator::deallocate(current);
+            }
+
             /**
              * @brief Destructor. Clears the list and deallocates all nodes.
              */
