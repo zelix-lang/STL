@@ -114,7 +114,7 @@ namespace zelix::stl
                         }
                     }
 
-                    Allocator::template deallocate<false>(data); // Deallocate memory
+                    Allocator::deallocate(data); // Deallocate memory
                 }
             }
         public:
