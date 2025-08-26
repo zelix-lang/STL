@@ -36,7 +36,7 @@ namespace zelix::stl
     {
         template <
             typename T,
-            template <typename, typename... Args> class Container = delist,
+            template <typename, typename...> class Container = delist,
             typename... ContainerArgs
         >
         class stack
