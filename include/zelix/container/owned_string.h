@@ -34,7 +34,7 @@
 #include "string_utils.h"
 #include "zelix/except/out_of_range.h"
 #include "zelix/except/uninitialized_memory.h"
-#include "zelix/memory/resource.h"
+#include "zelix/memory/system_resource.h"
 
 namespace zelix::stl
 {
@@ -47,9 +47,9 @@ namespace zelix::stl
          */
         template <
             double GrowthFactor = 1.8,
-            typename Allocator = memory::resource<char>,
+            typename Allocator = memory::system_array_resource<char>,
             typename = std::enable_if_t<
-                std::is_base_of_v<memory::resource<char>, Allocator>
+                std::is_base_of_v<memory::array_resource<char>, Allocator>
             >
         >
         class string
@@ -226,7 +226,7 @@ namespace zelix::stl
             {
                 if (!buffer)
                 {
-                    buffer = Allocator::arr(required + 1); // +1 for null terminator
+                    buffer = Allocator::allocate(required + 1); // +1 for null terminator
                     capacity = required + 1;
                     max_capacity = required;
                     return;
