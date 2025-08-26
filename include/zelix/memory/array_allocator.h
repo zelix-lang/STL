@@ -41,6 +41,11 @@ namespace zelix::stl::memory
             throw except::failed_alloc("Default allocator not overridden. Please provide your own allocator in order to use PMR.");
         }
 
+        static T *reallocate(T *ptr, size_t old_len, size_t new_len) ///< Allocate memory for the given elements
+        {
+            throw except::failed_alloc("Default allocator not overridden. Please provide your own allocator in order to use PMR.");
+        }
+
         static void deallocate(T *ptr) ///< Deallocate memory at given pointer
         {
             throw except::failed_alloc("Default allocator not overridden. Please provide your own allocator in order to use PMR.");
