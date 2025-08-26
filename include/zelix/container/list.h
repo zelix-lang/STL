@@ -57,6 +57,10 @@ namespace zelix::stl
             {}
         };
 
+        /* * @brief A singly linked list implementation with custom memory resource support.
+         * @tparam T Type of the stored value.
+         * @tparam Allocator Memory resource to use for allocations. Defaults to system_resource.
+         */
         template <
             typename T,
             typename Allocator = memory::system_resource<__list_el<T>>,
