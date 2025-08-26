@@ -232,6 +232,11 @@ namespace zelix::stl
                 return len == 0;
             }
 
+            /**
+             * @brief Remove the element at the specified index.
+             * @param n The index of the element to remove.
+             * @throws except::out_of_range if the index is out of bounds.
+             */
             void erase(const size_t n)
             {
                 if (n >= len) throw except::out_of_range("Index out of range");
