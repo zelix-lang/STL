@@ -29,8 +29,8 @@
 #include <variant>
 
 
-#include "array_allocator.h"
-#include "resource.h"
+#include "../memory/array_allocator.h"
+#include "../memory/resource.h"
 #include "zelix/container/forward.h"
 
 namespace zelix::stl::memory
