@@ -230,6 +230,16 @@ namespace zelix::stl
                 return len == 0;
             }
 
+            /**
+             * @brief Removes the element at the specified index from the list.
+             *
+             * This function removes the element at position \p n in the list. If the index is out of range,
+             * an except::out_of_range exception is thrown. The function updates the head and tail pointers
+             * as necessary and deallocates the removed node.
+             *
+             * @param n The index of the element to remove.
+             * @throws except::out_of_range if the index is out of bounds.
+            */
             void erase(const size_t n)
             {
                 if (n >= len) throw except::out_of_range("Index out of range");
