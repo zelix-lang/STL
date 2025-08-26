@@ -32,7 +32,7 @@
 #include "../memory/resource.h"
 #include "zelix/container/forward.h"
 
-namespace zelix::stl::memory
+namespace zelix::stl
 {
     namespace pmr
     {
