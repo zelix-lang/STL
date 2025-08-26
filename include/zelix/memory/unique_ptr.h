@@ -25,7 +25,13 @@
 
 #pragma once
 
+#include <tuple>
+#include <variant>
+
+
+#include "array_allocator.h"
 #include "resource.h"
+#include "zelix/container/forward.h"
 
 namespace zelix::stl::memory
 {
@@ -33,17 +39,59 @@ namespace zelix::stl::memory
     {
         template <
             typename T,
-            typename Allocator = resource<T>
+            typename Allocator = std::conditional_t<
+                std::is_array_v<T>,
+                array_resource<T>,
+                resource<T>
+            >,
+            typename = std::enable_if_t<
+                std::is_base_of_v<
+                    std::conditional_t<
+                        std::is_array_v<T>,
+                        array_resource<std::remove_extent_t<T>>,
+                        resource<T>
+                    >,
+                    Allocator
+                >
+            >
         >
         class unique_ptr
         {
             T *ptr = nullptr; ///< Pointer to the managed object
 
         public:
-            template <typename... Args>
-            unique_ptr(Args&&... args)
+            template <typename ...Args>
+            unique_ptr(Args &&...args)
             {
-                ptr = Allocator::allocate(stl::forward<Args>(args)...);
+                if constexpr (std::is_array_v<T>)
+                {
+                    ptr = Allocator::allocate(std::extent_v<T>);
+
+                    // Move all elements
+                    static_assert(sizeof...(args) == 1,
+                           "Array case expects exactly one arg");
+
+                    auto&& arr = std::get<0>(std::forward_as_tuple(args...));
+                    constexpr size_t N = std::extent_v<T>;
+
+                    for (std::size_t i = 0; i < N; ++i)
+                    {
+                        static_assert(
+                            std::is_convertible_v<
+                                std::remove_reference_t<decltype(arr[i])>,
+                                std::remove_extent_t<T>
+                            >,
+                            "Array element type mismatch"
+                        );
+
+                        const auto &el = arr[i];
+                        ptr[i] = el;
+                    }
+                }
+                else
+                {
+                    ptr = Allocator::allocate(stl::forward<Args>(args)...);
+                }
             }
 
             unique_ptr(const unique_ptr&) = delete;
