@@ -42,6 +42,7 @@ namespace zelix::stl::memory
     template<typename T>
     class system_resource : public resource<T>
     {
+    public:
         template <typename... Args>
         static T *allocate(Args&&... args) ///< Allocate memory of given size
         {
@@ -82,6 +83,7 @@ namespace zelix::stl::memory
     template<typename T>
     class system_array_resource : public array_resource<T>
     {
+    public:
         static T *allocate(size_t n) ///< Allocate memory for the given elements
         {
             if constexpr (std::is_trivially_constructible_v<T>)
