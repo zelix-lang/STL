@@ -32,6 +32,7 @@
 #include "forward.h"
 #include "zelix/except/out_of_range.h"
 #include "zelix/memory/resource.h"
+#include "zelix/memory/system_resource.h"
 
 namespace zelix::stl
 {
@@ -64,7 +65,7 @@ namespace zelix::stl
          */
         template <
             typename T,
-            typename Allocator = memory::resource<__delist_el<T>>,
+            typename Allocator = memory::system_resource<__delist_el<T>>,
             typename = std::enable_if_t<
                 std::is_base_of_v<memory::resource<__delist_el<T>>, Allocator>
             >
