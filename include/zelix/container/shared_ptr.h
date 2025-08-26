@@ -31,6 +31,7 @@
 #include "../memory/array_allocator.h"
 #include "../memory/resource.h"
 #include "zelix/container/forward.h"
+#include "zelix/memory/system_resource.h"
 
 namespace zelix::stl
 {
@@ -41,26 +42,26 @@ namespace zelix::stl
             bool Concurrent,
             typename Allocator = std::conditional_t<
                 std::is_array_v<T>,
-                array_resource<T>,
-                resource<T>
+                memory::system_array_resource<T>,
+                memory::system_resource<T>
             >,
-            typename ARefCountAllocator = resource<std::atomic<int>>,
-            typename RefCountAllocator = resource<int>,
+            typename ARefCountAllocator = memory::resource<std::atomic<int>>,
+            typename RefCountAllocator = memory::resource<int>,
             typename = std::enable_if_t<
                 std::is_base_of_v<
                     std::conditional_t<
                         std::is_array_v<T>,
-                        array_resource<std::remove_extent_t<T>>,
-                        resource<T>
+                        memory::array_resource<std::remove_extent_t<T>>,
+                        memory::resource<T>
                     >,
                     Allocator
                 >
             >,
             typename = std::enable_if_t<
-                std::is_base_of_v<resource<std::atomic<int>>, ARefCountAllocator>
+                std::is_base_of_v<memory::resource<std::atomic<int>>, ARefCountAllocator>
             >,
             typename = std::enable_if_t<
-                std::is_base_of_v<resource<int>, RefCountAllocator>
+                std::is_base_of_v<memory::resource<int>, RefCountAllocator>
             >
         >
         class shared_ptr
