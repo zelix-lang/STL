@@ -36,16 +36,12 @@ namespace zelix::stl
     {
         template <
             typename T,
-            template <typename, typename...> class Container = delist,
-            typename Allocator = memory::system_resource<__delist_el<T>>,
-            typename = std::enable_if_t<
-                std::is_base_of_v<memory::resource<__delist_el<T>>, Allocator>
-            >,
+            template <typename, typename... Args> class Container = delist,
             typename... ContainerArgs
         >
         class stack
         {
-            Container<T, ContainerArgs..., Allocator> list; ///< Underlying delist to hold the stack elements
+            Container<T, ContainerArgs...> list; ///< Underlying delist to hold the stack elements
         public:
             void push(const T& val)
             {
