@@ -34,7 +34,9 @@
 #include "zelix/except/exception.h"
 #include "zelix/except/out_of_range.h"
 #include "zelix/except/uninitialized_memory.h"
+#include "zelix/memory/array_allocator.h"
 #include "zelix/memory/resource.h"
+#include "zelix/memory/system_resource.h"
 
 namespace zelix::stl
 {
@@ -54,9 +56,9 @@ namespace zelix::stl
             typename T,
             double GrowthFactor = 1.8,
             size_t InitialCapacity = 25,
-            typename Allocator = memory::resource<T>,
+            typename Allocator = memory::system_array_resource<T>,
             typename = std::enable_if_t<
-                std::is_base_of_v<memory::resource<T>, Allocator>
+                std::is_base_of_v<memory::array_resource<T>, Allocator>
             >
         >
         class vector
@@ -86,7 +88,7 @@ namespace zelix::stl
             {
                 if (!data)
                 {
-                    data = Allocator::arr(new_size);
+                    data = Allocator::allocate(new_size);
                     capacity_ = new_size;
                     return;
                 }
