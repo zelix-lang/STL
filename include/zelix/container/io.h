@@ -140,15 +140,10 @@ namespace zelix::stl
     #       endif
             }
 
-            ostream &operator<<(const string<> &str_handle)
+            template <class T = string<>>
+            ostream &operator<<(T &&handle)
             {
-                do_write(str_handle.ptr(), str_handle.size());
-                return *this;
-            }
-
-            ostream &operator<<(const string<> &&str_handle)
-            {
-                do_write(str_handle.ptr(), str_handle.size());
+                do_write(handle.ptr(), handle.size());
                 return *this;
             }
 
@@ -166,7 +161,13 @@ namespace zelix::stl
                 return *this;
             }
 
-            ostream &operator<<(const display &d)
+            template <
+                typename T,
+                typename = std::enable_if_t<
+                   std::is_base_of_v<T, display>
+                >
+            >
+            ostream &operator<<(const T &d)
             {
                 auto val = d.serialize();
                 do_write(val.c_str(), val.size());
