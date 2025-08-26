@@ -162,12 +162,12 @@ namespace zelix::stl
             }
 
             template <
-                typename T,
+                class T = display,
                 typename = std::enable_if_t<
                    std::is_base_of_v<T, display>
                 >
             >
-            ostream &operator<<(const T &d)
+            ostream &operator<<(T &&d)
             {
                 auto val = d.serialize();
                 do_write(val.c_str(), val.size());
