@@ -39,9 +39,9 @@ namespace zelix::stl
             typename T,
             double GrowthFactor = 1.8,
             size_t InitialCapacity = 25,
-            typename Allocator = memory::resource<T>,
+            typename Allocator = memory::array_resource<T>,
             typename = std::enable_if_t<
-                std::is_base_of_v<memory::resource<T>, Allocator>
+                std::is_base_of_v<memory::array_resource<T>, Allocator>
             >
         >
         class stream
