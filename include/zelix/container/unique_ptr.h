@@ -27,8 +27,6 @@
 
 #include <tuple>
 #include <variant>
-
-
 #include "../memory/array_allocator.h"
 #include "../memory/resource.h"
 #include "zelix/container/forward.h"
@@ -41,15 +39,15 @@ namespace zelix::stl
             typename T,
             typename Allocator = std::conditional_t<
                 std::is_array_v<T>,
-                array_resource<T>,
-                resource<T>
+                memory::array_resource<T>,
+                memory::resource<T>
             >,
             typename = std::enable_if_t<
                 std::is_base_of_v<
                     std::conditional_t<
                         std::is_array_v<T>,
-                        array_resource<std::remove_extent_t<T>>,
-                        resource<T>
+                        memory::array_resource<std::remove_extent_t<T>>,
+                        memory::resource<T>
                     >,
                     Allocator
                 >
