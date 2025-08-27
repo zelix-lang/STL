@@ -28,13 +28,16 @@
 //
 
 #pragma once
+#include <mutex>
+
+
 #include "allocator.h"
 #include "resource.h"
 
 namespace zelix::stl::memory
 {
     template <typename T>
-    class monotonic_system_resource : public resource<T>
+    class monotonic_resource : public resource<T>
     {
         static pmr::lazy_allocator<T> allocator;
 
@@ -47,6 +50,27 @@ namespace zelix::stl::memory
 
         static void deallocate(T *ptr) ///< Deallocate memory at given pointer
         {
+            return allocator.dealloc(ptr);
+        }
+    };
+
+    template <typename T>
+    class monotonic_concurrent_resource : public resource<T>
+    {
+        static std::mutex mutex_;
+        static pmr::lazy_allocator<T> allocator;
+
+    public:
+        template <typename... Args>
+        static T *allocate(Args&&... args) ///< Allocate memory of given size
+        {
+            std::unique_lock lock(mutex_);
+            return allocator.alloc(stl::forward<Args>(args)...);
+        }
+
+        static void deallocate(T *ptr) ///< Deallocate memory at given pointer
+        {
+            std::unique_lock lock(mutex_);
             return allocator.dealloc(ptr);
         }
     };
