@@ -205,7 +205,7 @@ namespace zelix::stl
              */
             __list_el<T> *end()
             {
-                return tail;
+                return nullptr;
             }
 
             /**
