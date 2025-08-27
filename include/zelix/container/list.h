@@ -249,6 +249,24 @@ namespace zelix::stl
             }
 
             /**
+             * @brief Get the number of elements in the list.
+             * @return Number of elements.
+             */
+            [[nodiscard]] size_t size()
+            {
+                return len;
+            }
+
+            /**
+             * @brief Check if the list is empty.
+             * @return True if empty, false otherwise.
+             */
+            [[nodiscard]] bool empty()
+            {
+                return len == 0;
+            }
+
+            /**
              * @brief Removes the element at the specified index from the list.
              *
              * This function removes the element at position \p n in the list. If the index is out of range,
