@@ -452,6 +452,11 @@ namespace zelix::stl
                 len = 0;
             }
 
+            external_string external()
+            {
+                return { buffer, len };
+            }
+
             /**
              * @brief Creates a string object that uses an external buffer without copying.
              *
