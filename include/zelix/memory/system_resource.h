@@ -31,7 +31,7 @@
 #include <cstdlib>
 
 
-#include "array_allocator.h"
+#include "array_resource.h"
 #include "resource.h"
 #include "zelix/container/forward.h"
 #include "zelix/container/math_utils.h"

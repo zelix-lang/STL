@@ -27,7 +27,7 @@
 
 #include <tuple>
 #include <variant>
-#include "../memory/array_allocator.h"
+#include "../memory/array_resource.h"
 #include "../memory/resource.h"
 #include "zelix/container/forward.h"
 #include "zelix/memory/system_resource.h"

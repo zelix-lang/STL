@@ -34,7 +34,7 @@
 #include "zelix/except/exception.h"
 #include "zelix/except/out_of_range.h"
 #include "zelix/except/uninitialized_memory.h"
-#include "zelix/memory/array_allocator.h"
+#include "zelix/memory/array_resource.h"
 #include "zelix/memory/resource.h"
 #include "zelix/memory/system_resource.h"
 
