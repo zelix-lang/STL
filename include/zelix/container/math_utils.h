@@ -30,6 +30,12 @@
 #pragma once
 #include <type_traits>
 
+#   if defined(_WIN64) || defined(__x86_64__) || defined(__ppc64__)
+    using magic_type = __uint128_t;
+#   else
+using magic_type = uint32_t;
+#   endif
+
 namespace zelix::stl
 {
     template <
@@ -40,7 +46,7 @@ namespace zelix::stl
         typename = std::enable_if_t<std::is_integral_v<U>>,
         typename = std::enable_if_t<std::is_integral_v<Return>>
     >
-    Return max(T a, U b)
+    [[nodiscard]] Return max(T a, U b)
     {
         if (a < b)
         {
@@ -72,7 +78,7 @@ namespace zelix::stl
         typename = std::enable_if_t<std::is_integral_v<U>>,
         typename = std::enable_if_t<std::is_integral_v<Return>>
     >
-    Return min(T a, U b)
+    [[nodiscard]] Return min(T a, U b)
     {
         if (a > b)
         {
@@ -94,5 +100,14 @@ namespace zelix::stl
         {
             return static_cast<Return>(a);
         }
+    }
+
+    [[nodiscard]] inline magic_type magic_number(const size_t max)
+    {
+#   if defined(_WIN64) || defined(__x86_64__) || defined(__ppc64__)
+        return (static_cast<magic_type>(1) << 64) / max;
+#   else
+        return (magic_type(1) << 32) / max;
+#   endif
     }
 }
