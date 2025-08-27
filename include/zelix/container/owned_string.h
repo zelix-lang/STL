@@ -489,7 +489,11 @@ namespace zelix::stl
              */
             ~string()
             {
-                Allocator::deallocate(buffer);
+                if (buffer)
+                {
+                    Allocator::deallocate(buffer);
+                    buffer = nullptr;
+                }
             }
         };
     }
