@@ -106,7 +106,7 @@ namespace zelix::stl::memory
                 std::is_base_of_v<array_resource<T>, Allocator>
             >,
             typename = std::enable_if_t<
-                std::is_base_of_v<resource<stl::pmr::__list_el<T>>, InnerAllocator>
+                std::is_base_of_v<resource<stl::pmr::__list_el<page<T, Capacity, CallDestructors, Allocator>>>, InnerAllocator>
             >,
             typename = std::enable_if_t<
                 std::is_base_of_v<array_resource<T *>, FreeListAllocator>
