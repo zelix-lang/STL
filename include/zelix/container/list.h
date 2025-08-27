@@ -209,6 +209,24 @@ namespace zelix::stl
             }
 
             /**
+             * @brief Returns a pointer to the first element in the list.
+             * @return Pointer to the head node, or nullptr if the list is empty.
+             */
+            __list_el<T> *begin() const
+            {
+                return head;
+            }
+
+            /**
+             * @brief Returns a pointer to the last element in the list.
+             * @return Pointer to the tail node, or nullptr if the list is empty.
+             */
+            __list_el<T> *end() const
+            {
+                return nullptr;
+            }
+
+            /**
              * @brief Access element by index.
              * @param index Position of the element.
              * @return Reference to the element at the given index.
