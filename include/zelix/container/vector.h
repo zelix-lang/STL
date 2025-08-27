@@ -231,7 +231,15 @@ namespace zelix::stl
                     resize(static_cast<size_t>(capacity_ * GrowthFactor));
                 }
 
-                new (&this->data[size_]) T(stl::forward<Args>(args)...);
+                if constexpr (std::is_trivially_copyable_v<T>)
+                {
+                    auto val = T(stl::forward<Args>(args)...);
+                    data[size_] = val;
+                }
+                else
+                {
+                    new (&this->data[size_]) T(stl::forward<Args>(args)...);
+                }
                 ++size_;
             }
 
