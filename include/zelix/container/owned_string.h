@@ -382,6 +382,11 @@ namespace zelix::stl
                 return len;
             }
 
+            /**
+             * @brief Clears the string, setting its length to zero.
+             *
+             * Does not deallocate memory or modify the buffer contents.
+             */
             void clear()
             {
                 len = 0;
