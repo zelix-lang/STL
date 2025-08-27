@@ -89,7 +89,7 @@ namespace zelix::stl::memory
                 }
 
                 // Free the buffer memory
-                Allocator::deallocate_raw(buffer);
+                Allocator::deallocate(reinterpret_cast<T*>(buffer));
             }
         };
 
