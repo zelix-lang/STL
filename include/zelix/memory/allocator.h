@@ -100,7 +100,15 @@ namespace zelix::stl::memory
             size_t FreeListInitialCapacity = 25,
             bool CallDestructors = true,
             typename Allocator = system_array_resource<T>,
-            typename InnerAllocator = system_resource<stl::pmr::__list_el<T>>,
+            typename InnerAllocator = system_resource<
+                stl::pmr::__list_el<
+                    stl::pmr::__list_el<
+                        page<
+                            T, Capacity, CallDestructors, Allocator
+                        >
+                    >
+                >
+            >,
             typename FreeListAllocator = system_array_resource<T *>,
             typename = std::enable_if_t<
                 std::is_base_of_v<array_resource<T>, Allocator>
