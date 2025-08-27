@@ -30,14 +30,14 @@
 #pragma once
 #include <type_traits>
 
+namespace zelix::stl
+{
 #   if defined(_WIN64) || defined(__x86_64__) || defined(__ppc64__)
     using magic_type = __uint128_t;
 #   else
-using magic_type = uint32_t;
+    using magic_type = uint32_t;
 #   endif
 
-namespace zelix::stl
-{
     template <
         typename T,
         typename U,
