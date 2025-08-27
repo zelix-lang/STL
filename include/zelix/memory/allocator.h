@@ -29,7 +29,7 @@
 
 #pragma once
 
-#include "zelix/container/delist.h"
+#include "zelix/container/list.h"
 #include "zelix/container/vector.h"
 
 namespace zelix::stl::memory
