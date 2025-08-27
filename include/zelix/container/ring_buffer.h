@@ -30,6 +30,7 @@
 #pragma once
 #include "forward.h"
 #include "zelix/except/out_of_range.h"
+#include "zelix/memory/system_resource.h"
 
 namespace zelix::stl
 {
@@ -79,14 +80,22 @@ namespace zelix::stl
              * If the buffer is full, the oldest element is overwritten.
              * \param value The element to add.
              */
-            void push_back(T &value)
+            template <class U = T>
+            void push_back(U &&value)
             {
-                if (head > Max)
+                if (head >= Max)
                 {
                     head = 0; // Reset the head if it exceeds the maximum size
                 }
 
-                data[head++] = value; // Add the element if there's space
+                if constexpr (std::is_trivially_copyable_v<T>)
+                {
+                    data[head++] = value; // Add the element if there's space
+                }
+                else
+                {
+                    new (&data[head++]) T(stl::forward<decltype(value)>(value)); // Placement new for non-trivially copyable types
+                }
             }
 
             template <typename... Args>
@@ -243,14 +252,45 @@ namespace zelix::stl
              *
              * \param buf   Pointer to the source buffer containing elements to write.
              * \param count Number of elements to write from the source buffer.
-             *
-             * \note It is the caller's responsibility to ensure that there is enough space
-             *       in the ring buffer to accommodate the elements being written.
              */
+            void unsafe_copy(const T *buf, const size_t count)
+            {
+                if constexpr (std::is_trivially_copyable_v<T>)
+                {
+                    memcpy(data + head, buf, count * sizeof(T));
+                }
+                else
+                {
+                    for (size_t i = 0; i < count; ++i)
+                    {
+                        new (&data[head + i]) T(buf[i]);
+                    }
+                }
+            }
+
+            /**
+             * \brief Writes a block of elements into the ring buffer.
+             *
+             * \param buf   Pointer to the source buffer containing elements to write.
+             * \param count Number of elements to write from the source buffer.
+             */
+            template <bool BoundsChecking = true>
             void write(const T *buf, const size_t count)
             {
-                // Warning: it is the caller's responsibility to do bounds checking
-                memcpy(data + head, buf, count * sizeof(T));
+                if constexpr (BoundsChecking)
+                {
+                    if (head + count >= Max)
+                    {
+                        const auto what_fits = Max - head;
+                        unsafe_copy(buf, what_fits);
+                        head = 0;
+                        unsafe_copy(buf + count, count - what_fits);
+                        head += (count - what_fits);
+                        return;
+                    }
+                }
+
+                unsafe_copy(buf, count);
                 head += count;
             }
 
