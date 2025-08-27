@@ -76,7 +76,7 @@ namespace zelix::stl
             {
                 initialized_ = true;
                 capacity_ = InitialCapacity;
-                data = Allocator::arr(capacity_);
+                data = Allocator::allocate(capacity_);
             }
 
             /**
@@ -164,7 +164,7 @@ namespace zelix::stl
 
                     if (other.data)
                     {
-                        data = Allocator::arr(capacity_);
+                        data = Allocator::allocate(capacity_);
                         if constexpr (std::is_trivially_copyable_v<T>)
                         {
                             memcpy(data, other.data, sizeof(T) * size_);
