@@ -559,5 +559,5 @@ namespace zelix::stl
     }
 
     template <typename T, double GrowthFactor = 1.8, size_t InitialCapacity = 25>
-    using vector = pmr::vector<T, GrowthFactor, InitialCapacity, memory::resource<T>>; ///< Default vector type using the default allocator
+    using vector = pmr::vector<T, GrowthFactor, InitialCapacity, memory::system_array_resource<T>>; ///< Default vector type using the default allocator
 }
