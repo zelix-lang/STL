@@ -201,7 +201,7 @@ namespace zelix::stl
             {
                 if (!buffer)
                 {
-                    buffer = Allocator::arr(required + 1); // +1 for null terminator
+                    buffer = Allocator::allocate(required + 1); // +1 for null terminator
                     capacity = required + 1;
                     max_capacity = required;
                     return;
