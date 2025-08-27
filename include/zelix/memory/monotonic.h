@@ -55,7 +55,7 @@ namespace zelix::stl::memory
     };
 
     template <typename T>
-    class monotonic_concurrent_resource : public resource<T>
+    class concurrent_monotonic_resource : public resource<T>
     {
         static std::mutex mutex_;
         static pmr::lazy_allocator<T> allocator;
