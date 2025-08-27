@@ -40,9 +40,9 @@ namespace zelix::stl::memory
             typename T,
             size_t Capacity,
             bool CallDestructors,
-            typename Allocator = resource<T>,
+            typename Allocator = system_array_resource<T>,
             typename = std::enable_if_t<
-                std::is_base_of_v<resource<T>, Allocator>
+                std::is_base_of_v<array_resource<T>, Allocator>
             >
         >
         class page
@@ -53,7 +53,7 @@ namespace zelix::stl::memory
         public:
             page()
             {
-                buffer = static_cast<unsigned char *>(Allocator::raw(Capacity * sizeof(T)));
+                buffer = reinterpret_cast<unsigned char *>(Allocator::allocate(Capacity));
                 if (!buffer) throw std::bad_alloc();
             }
 
@@ -96,16 +96,26 @@ namespace zelix::stl::memory
         template <
             typename T,
             size_t Capacity = 256,
+            double FreeListGrowthFactor = 1.8,
+            size_t FreeListInitialCapacity = 25,
             bool CallDestructors = true,
-            typename Allocator = resource<T>,
+            typename Allocator = system_array_resource<T>,
+            typename InnerAllocator = system_resource<stl::pmr::__list_el<T>>,
+            typename FreeListAllocator = system_array_resource<T *>,
             typename = std::enable_if_t<
-                std::is_base_of_v<resource<T>, Allocator>
+                std::is_base_of_v<array_resource<T>, Allocator>
+            >,
+            typename = std::enable_if_t<
+                std::is_base_of_v<resource<T>, InnerAllocator>
+            >,
+            typename = std::enable_if_t<
+                std::is_base_of_v<array_resource<T *>, FreeListAllocator>
             >
         >
         class lazy_allocator
         {
-            stl::pmr::delist<page<T, Capacity, CallDestructors, Allocator>> pages;
-            vector<T *> free_list;
+            stl::pmr::list<page<T, Capacity, CallDestructors, Allocator>, InnerAllocator> pages;
+            stl::pmr::vector<T *, FreeListGrowthFactor, FreeListInitialCapacity, FreeListAllocator> free_list;
 
         public:
             T *alloc(auto&&... args)
@@ -149,6 +159,12 @@ namespace zelix::stl::memory
         };
     }
 
-    template <typename T, size_t Capacity = 256, bool CallDestructors = true>
-    using lazy_allocator = pmr::lazy_allocator<T, Capacity, CallDestructors>; ///< Default lazy allocator type using the default page size and destructor behavior
+    template <
+        typename T,
+        size_t Capacity = 256,
+        double FreeListGrowthFactor = 1.8,
+        size_t FreeListInitialCapacity = 25,
+        bool CallDestructors = true
+    >
+    using lazy_allocator = pmr::lazy_allocator<T, Capacity, FreeListGrowthFactor, FreeListInitialCapacity, CallDestructors>; ///< Default lazy allocator type using the default page size and destructor behavior
 }
