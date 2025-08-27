@@ -147,7 +147,6 @@ namespace zelix::stl
                 len++;
                 auto new_node = Allocator::allocate(stl::forward<Args>(args)...);
                 new_node->next = nullptr;
-                new_node->prev = tail;
                 if (tail) tail->next = new_node;
                 tail = new_node;
                 if (!head) head = new_node; // First element
@@ -160,11 +159,9 @@ namespace zelix::stl
             void pop_front()
             {
                 len--;
-                if (!head) return; // Empty delist
+                if (!head) return; // Empty list
                 auto old_head = head;
                 head = head->next;
-                if (head) head->prev = nullptr;
-                else tail = nullptr; // Delist is now empty
                 Allocator::deallocate(old_head);
             }
 
@@ -177,9 +174,19 @@ namespace zelix::stl
                 len--;
                 if (!tail) return; // Empty delist
                 auto old_tail = tail;
-                tail = tail->prev;
+                __list_el<T> new_tail = nullptr;
+                for (auto current = head; current != nullptr; current = current->next)
+                {
+                    if (current->next == tail)
+                    {
+                        new_tail = current;
+                        break;
+                    }
+                }
+
+                tail = new_tail;
                 if (tail) tail->next = nullptr;
-                else head = nullptr; // Delist is now empty
+                else head = nullptr; // list is now empty
                 Allocator::deallocate(old_tail);
             }
 
