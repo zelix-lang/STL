@@ -144,8 +144,7 @@ namespace zelix::stl::memory
                 // Check the free list first
                 if (!free_list.empty())
                 {
-                    T *ptr = free_list[free_list.size() - 1];
-                    free_list.pop_back();
+                    T *ptr = free_list.pop_back_move();
                     new (ptr) T(stl::forward<decltype(args)>(args)...); // Placement new to construct the object
                     return ptr;
                 }
