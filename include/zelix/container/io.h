@@ -28,6 +28,9 @@
 //
 
 #pragma once
+#include <mutex>
+
+
 #include "display.h"
 #include "owned_string.h"
 #include "zelix/algorithm/ftoi.h"
@@ -259,6 +262,175 @@ namespace zelix::stl
                 flush();
             }
         };
+
+        template <
+            int FileDescriptor,
+            size_t Capacity,
+            bool UseHeap = Capacity >= 256,
+            typename Allocator = memory::system_array_resource<char>,
+            typename = std::enable_if_t<
+                std::is_base_of_v<memory::array_resource<char>, Allocator>
+            >
+        >
+        class concurrent_ostream : ostream<FileDescriptor, Capacity, UseHeap, Allocator>
+        {
+#       ifndef _WIN32
+            // Mutex for thread-safe operations
+            std::mutex mutex_;
+#       endif
+
+        public:
+            concurrent_ostream()
+                : ostream<FileDescriptor, Capacity, UseHeap, Allocator>()
+            {}
+
+            template <class T = string<>>
+            concurrent_ostream &operator<<(T &&handle)
+            {
+#           ifndef _WIN32
+                std::unique_lock lock(mutex_);
+#           endif
+                ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
+                    operator<<(stl::forward<T>(handle));
+                return *this;
+            }
+
+            concurrent_ostream &operator<<(const bool val)
+            {
+#           ifndef _WIN32
+                std::unique_lock lock(mutex_);
+#           endif
+                ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
+                    operator<<(stl::forward<decltype(val)>(val));
+                return *this;
+            }
+
+            template <
+                class T = display,
+                typename = std::enable_if_t<
+                   std::is_base_of_v<T, display>
+                >
+            >
+            concurrent_ostream &operator<<(T &&d)
+            {
+#           ifndef _WIN32
+                std::unique_lock lock(mutex_);
+#           endif
+                ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
+                    operator<<(stl::forward<decltype(d)>(d));
+                return *this;
+            }
+
+            concurrent_ostream &operator<<(const short val)
+            {
+#           ifndef _WIN32
+                std::unique_lock lock(mutex_);
+#           endif
+                ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
+                    operator<<(stl::forward<decltype(val)>(val));
+                return *this;
+            }
+
+            concurrent_ostream &operator<<(const int val)
+            {
+#           ifndef _WIN32
+                std::unique_lock lock(mutex_);
+#           endif
+                ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
+                    operator<<(stl::forward<decltype(val)>(val));
+                return *this;
+            }
+
+            concurrent_ostream &operator<<(const long val)
+            {
+#           ifndef _WIN32
+                std::unique_lock lock(mutex_);
+#           endif
+                ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
+                    operator<<(stl::forward<decltype(val)>(val));
+                return *this;
+            }
+
+            concurrent_ostream &operator<<(const long long val)
+            {
+#           ifndef _WIN32
+                std::unique_lock lock(mutex_);
+#           endif
+                ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
+                    operator<<(stl::forward<decltype(val)>(val));
+                return *this;
+            }
+
+            concurrent_ostream &operator<<(const unsigned short val)
+            {
+#           ifndef _WIN32
+                std::unique_lock lock(mutex_);
+#           endif
+                ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
+                    operator<<(stl::forward<decltype(val)>(val));
+                return *this;
+            }
+
+            concurrent_ostream &operator<<(const unsigned int val)
+            {
+#           ifndef _WIN32
+                std::unique_lock lock(mutex_);
+#           endif
+                ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
+                    operator<<(stl::forward<decltype(val)>(val));
+                return *this;
+            }
+
+            concurrent_ostream &operator<<(const unsigned long val)
+            {
+#           ifndef _WIN32
+                std::unique_lock lock(mutex_);
+#           endif
+                ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
+                    operator<<(stl::forward<decltype(val)>(val));
+                return *this;
+            }
+
+            concurrent_ostream &operator<<(const unsigned long long val)
+            {
+#           ifndef _WIN32
+                std::unique_lock lock(mutex_);
+#           endif
+                ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
+                    operator<<(stl::forward<decltype(val)>(val));
+                return *this;
+            }
+
+            concurrent_ostream &operator<<(const float val)
+            {
+#           ifndef _WIN32
+                std::unique_lock lock(mutex_);
+#           endif
+                ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
+                    operator<<(stl::forward<decltype(val)>(val));
+                return *this;
+            }
+
+            concurrent_ostream &operator<<(const double val)
+            {
+#           ifndef _WIN32
+                std::unique_lock lock(mutex_);
+#           endif
+                ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
+                    operator<<(stl::forward<decltype(val)>(val));
+                return *this;
+            }
+
+            concurrent_ostream &operator<<(const char *s)
+            {
+#           ifndef _WIN32
+                std::unique_lock lock(mutex_);
+#           endif
+                ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
+                    operator<<(stl::forward<decltype(s)>(s));
+                return *this;
+            }
+        };
     }
 
     template <
@@ -267,6 +439,13 @@ namespace zelix::stl
         bool UseHeap = Capacity >= 256
     >
     using ostream = pmr::ostream<FileDescriptor, Capacity, UseHeap>;
+
+    template <
+        int FileDescriptor,
+        size_t Capacity,
+        bool UseHeap = Capacity >= 256
+    >
+    using concurrent_ostream = pmr::ostream<FileDescriptor, Capacity, UseHeap>;
 
 #   ifndef _WIN32
     inline constexpr auto endl = "\n"; ///< Newline character for output streams
@@ -277,4 +456,11 @@ namespace zelix::stl
     inline ostream<STDERR_FILENO, 1024> stderr; ///< Standard error stream
     inline auto &cout = stdout; ///< Alias for standard output stream
     inline auto &cerr = stderr; ///< Alias for standard error stream
+
+#   ifdef ZELIX_STL_USE_CONCURRENT_IO
+    inline concurrent_ostream<STDOUT_FILENO, 1024> cstdout; ///< Standard output stream
+    inline concurrent_ostream<STDERR_FILENO, 1024> cstderr; ///< Standard error stream
+    inline auto &ccout = stdout; ///< Alias for standard output stream
+    inline auto &ccerr = stderr; ///< Alias for standard error stream
+#   endif
 }
