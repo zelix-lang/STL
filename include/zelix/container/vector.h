@@ -557,6 +557,19 @@ namespace zelix::stl
             }
 
             /**
+             * @brief Sets the internal size of the vector to the specified value.
+             *
+             * This function directly sets the size\_ variable without modifying the underlying data.
+             * Use with caution: it does not construct or destroy elements.
+             *
+             * @param n The new size to set.
+             */
+            void calibrate(const size_t n)
+            {
+                size_ = n;
+            }
+
+            /**
              * @brief Destructor. Destroys all elements and releases memory.
              */
             ~vector()
