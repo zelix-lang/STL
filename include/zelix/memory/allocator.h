@@ -102,10 +102,11 @@ namespace zelix::stl::memory
             typename Allocator = system_array_resource<T>,
             typename InnerAllocator = system_resource<
                 stl::pmr::__list_el<
-                    stl::pmr::__list_el<
-                        page<
-                            T, Capacity, CallDestructors, Allocator
-                        >
+                    page<
+                        T,
+                        Capacity,
+                        CallDestructors,
+                        Allocator
                     >
                 >
             >,
@@ -114,7 +115,19 @@ namespace zelix::stl::memory
                 std::is_base_of_v<array_resource<T>, Allocator>
             >,
             typename = std::enable_if_t<
-                std::is_base_of_v<resource<stl::pmr::__list_el<page<T, Capacity, CallDestructors, Allocator>>>, InnerAllocator>
+                std::is_base_of_v<
+                    resource<
+                        stl::pmr::__list_el<
+                            page<
+                                T,
+                                Capacity,
+                                CallDestructors,
+                                Allocator
+                            >
+                        >
+                    >,
+                    InnerAllocator
+                >
             >,
             typename = std::enable_if_t<
                 std::is_base_of_v<array_resource<T *>, FreeListAllocator>
