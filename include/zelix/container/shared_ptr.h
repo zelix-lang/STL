@@ -41,13 +41,18 @@ namespace zelix::stl
         template <
             typename T,
             bool Concurrent,
+            bool ConcurrentAllocation,
             typename Allocator = std::conditional_t<
                 std::is_array_v<T>,
                 memory::system_array_resource<T>,
-                memory::monotonic_system_resource<T>
+                std::conditional_t<
+                    ConcurrentAllocation,
+                    memory::concurrent_monotonic_resource<T>,
+                    memory::monotonic_resource<T>
+                >
             >,
-            typename ARefCountAllocator = memory::monotonic_system_resource<std::atomic<int>>,
-            typename RefCountAllocator = memory::monotonic_system_resource<int>,
+            typename ARefCountAllocator = memory::monotonic_resource<std::atomic<int>>,
+            typename RefCountAllocator = memory::monotonic_resource<int>,
             typename = std::enable_if_t<
                 std::is_base_of_v<
                     std::conditional_t<
@@ -233,8 +238,14 @@ namespace zelix::stl
     }
 
     template <typename T>
-    using shared_ptr = pmr::shared_ptr<T, false>; ///< Non-concurrent shared pointer
+    using shared_ptr = pmr::shared_ptr<T, false, false>; ///< Non-concurrent shared pointer
 
     template <typename T>
-    using concurrent_ptr = pmr::shared_ptr<T, true>; ///< Concurrent shared pointer
+    using concurrent_ptr = pmr::shared_ptr<T, true, false>; ///< Concurrent shared pointer
+
+    template <typename T>
+    using concurrent_arc_ptr = pmr::shared_ptr<T, true, true>; ///< Concurrent shared pointer
+
+    template <typename T>
+    using concurrent_rc_ptr = pmr::shared_ptr<T, false, true>; ///< Concurrent shared pointer
 }
