@@ -145,6 +145,8 @@ namespace zelix::stl::memory
                 if (!free_list.empty())
                 {
                     T *ptr = free_list.pop_back_move();
+                    ptr->~T(); // Call the destructor
+
                     new (ptr) T(stl::forward<decltype(args)>(args)...); // Placement new to construct the object
                     return ptr;
                 }
@@ -168,12 +170,12 @@ namespace zelix::stl::memory
 
             void dealloc(T *ptr)
             {
-                ptr->~T(); // Call the destructor
                 free_list.push_back(ptr);
             }
 
             ~lazy_allocator()
             {
+                free_list.calibrate(0); // Clear the free list without calling destructors
                 pages.clear(); // Clear the vector of pages
             }
         };
