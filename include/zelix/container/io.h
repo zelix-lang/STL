@@ -74,7 +74,7 @@ namespace zelix::stl
                     {
                         // Write only what fits
                         size_t space = Capacity - buffer.pos();
-                        buffer.write(ptr, space);
+                        buffer.template write<false>(ptr, space);
                         ptr += space;
                         remaining -= space;
 
@@ -88,7 +88,7 @@ namespace zelix::stl
                     return;
                 }
 
-                buffer.write(data, size);
+                buffer.template write<false>(data, size);
                 if (buffer.full())
                 {
                     flush();
