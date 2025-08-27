@@ -51,7 +51,7 @@ namespace zelix::stl
             len = other.len;
         }
 
-        explicit external_string(const char *buffer, const size_t len)
+        external_string(const char *buffer, const size_t len)
             : buffer(buffer), len(len)
         {
             if (buffer == nullptr || len == 0)
