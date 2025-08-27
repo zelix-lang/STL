@@ -34,7 +34,7 @@
 namespace zelix::stl::memory
 {
     template <typename T>
-    class monotonic_resource : public resource<T>
+    class monotonic_system_resource : public resource<T>
     {
         static pmr::lazy_allocator<T> allocator;
 
