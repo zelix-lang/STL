@@ -383,6 +383,36 @@ namespace zelix::stl
             }
 
             /**
+             * @brief Returns a pointer to the beginning of the string buffer.
+             * @return Pointer to the first character of the string.
+             * @throws except::uninitialized_memory if the buffer is not initialized.
+             */
+            [[nodiscard]] const char *begin() const
+            {
+                if (!buffer)
+                {
+                    throw except::uninitialized_memory("String not initialized");
+                }
+
+                return buffer;
+            }
+
+            /**
+             * @brief Returns a pointer to one past the last character of the string buffer.
+             * @return Pointer to the end of the string (buffer + len).
+             * @throws except::uninitialized_memory if the buffer is not initialized.
+             */
+            [[nodiscard]] const char *end() const
+            {
+                if (!buffer)
+                {
+                    throw except::uninitialized_memory("String not initialized");
+                }
+
+                return buffer + len;
+            }
+
+            /**
              * @brief Clears the string, setting its length to zero.
              *
              * Does not deallocate memory or modify the buffer contents.
