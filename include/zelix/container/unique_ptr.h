@@ -27,9 +27,10 @@
 
 #include <tuple>
 #include <variant>
-#include "zelix/memory/array_resource.h"
-#include "zelix/memory/resource.h"
 #include "zelix/container/forward.h"
+#include "zelix/memory/array_resource.h"
+#include "zelix/memory/monotonic.h"
+#include "zelix/memory/resource.h"
 #include "zelix/memory/system_resource.h"
 
 namespace zelix::stl
@@ -41,7 +42,7 @@ namespace zelix::stl
             typename Allocator = std::conditional_t<
                 std::is_array_v<T>,
                 memory::system_array_resource<T>,
-                memory::system_resource<T>
+                memory::monotonic_system_resource<T>
             >,
             typename = std::enable_if_t<
                 std::is_base_of_v<
