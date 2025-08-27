@@ -39,10 +39,15 @@ namespace zelix::stl
     {
         template <
             typename T,
+            bool ConcurrentAllocation,
             typename Allocator = std::conditional_t<
                 std::is_array_v<T>,
                 memory::system_array_resource<T>,
-                memory::monotonic_system_resource<T>
+                std::conditional_t<
+                    ConcurrentAllocation,
+                    memory::concurrent_monotonic_resource<T>,
+                    memory::monotonic_resource<T>
+                >
             >,
             typename = std::enable_if_t<
                 std::is_base_of_v<
@@ -148,5 +153,8 @@ namespace zelix::stl
     }
 
     template <typename T>
-    using unique_ptr = pmr::unique_ptr<T>; ///< Non-concurrent shared pointer
+    using unique_ptr = pmr::unique_ptr<T, false>; ///< Non-concurrent unique pointer
+
+    template <typename T>
+    using unique_concurrent_ptr = pmr::unique_ptr<T, true>; ///< Concurrent unique pointer
 }
