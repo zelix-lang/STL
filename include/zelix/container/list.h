@@ -132,7 +132,6 @@ namespace zelix::stl
                 len++;
                 auto new_node = Allocator::allocate(stl::forward<Args>(args)...);
                 new_node->next = head;
-                if (head) head->prev = new_node;
                 head = new_node;
                 if (!tail) tail = new_node; // First element
             }
