@@ -236,5 +236,5 @@ namespace zelix::stl
     using shared_ptr = pmr::shared_ptr<T, false>; ///< Non-concurrent shared pointer
 
     template <typename T>
-    using concurrent_ptr = pmr::shared_ptr<T, true>; ///< Non-concurrent shared pointer
+    using concurrent_ptr = pmr::shared_ptr<T, true>; ///< Concurrent shared pointer
 }
