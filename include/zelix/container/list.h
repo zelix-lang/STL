@@ -75,6 +75,34 @@ namespace zelix::stl
             __list_el<T> *tail = nullptr;
 
         public:
+            class iterator
+            {
+                __list_el<T> *current = nullptr;
+                explicit iterator(__list_el<T> *start) : current(start) {}
+
+            public:
+                T &operator*()
+                {
+                    if (!current) throw except::out_of_range("Iterator out of range");
+                    return current->data;
+                }
+
+                iterator &operator++()
+                {
+                    if (current) current = current->next;
+                    return *this;
+                }
+
+                bool operator!=(const iterator &other) const
+                {
+                    return current != other.current;
+                }
+
+                [[nodiscard]] bool has_next() const
+                {
+                    return current != nullptr;
+                }
+            };
             /**
              * @brief Insert an element at the front of the list.
              * @param value Value to insert.
@@ -331,6 +359,15 @@ namespace zelix::stl
 
                 // Deallocate the removed node
                 Allocator::deallocate(current);
+            }
+
+            /**
+             * @brief Returns an iterator to the beginning of the list.
+             * @return Iterator pointing to the head node.
+             */
+            iterator it()
+            {
+                return iterator(head);
             }
 
             /**
