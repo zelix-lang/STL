@@ -45,8 +45,8 @@ namespace zelix::stl
                 memory::system_array_resource<T>,
                 memory::system_resource<T>
             >,
-            typename ARefCountAllocator = memory::resource<std::atomic<int>>,
-            typename RefCountAllocator = memory::resource<int>,
+            typename ARefCountAllocator = memory::system_resource<std::atomic<int>>,
+            typename RefCountAllocator = memory::system_resource<int>,
             typename = std::enable_if_t<
                 std::is_base_of_v<
                     std::conditional_t<
