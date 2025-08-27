@@ -194,18 +194,18 @@ namespace zelix::stl
             template <class U = T>
             void push_back(U &&value)
             {
-                emplace_back(stl::forward<T>(value));
+                emplace_back(stl::forward<decltype(value)>(value));
             }
 
             /**
-                * @brief Appends a copy of the given element to the end of the vector.
-                *
-                * @param value Element to append.
+             * @brief Appends a copy of the given element to the end of the vector.
+             *
+             * @param value Element to append.
             */
             template <class U = T>
             void push_back(const U &&value)
             {
-                emplace_back(stl::forward<T>(value));
+                emplace_back(stl::forward<decltype(value)>(value));
             }
 
             /**
