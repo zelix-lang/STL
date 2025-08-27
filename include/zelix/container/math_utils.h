@@ -102,6 +102,16 @@ namespace zelix::stl
         }
     }
 
+    /**
+     * \brief Computes the magic number used for fast modulo reduction.
+     *
+     * This function calculates a precomputed "magic" value for a given maximum divisor,
+     * which can be used to replace division with faster multiplication and bit-shifting.
+     * The implementation uses 128-bit arithmetic on 64-bit platforms and 32/64-bit on others.
+     *
+     * \param max The divisor for which to compute the magic number.
+     * \return The computed magic number for use in fast modulo operations.
+     */
     [[nodiscard]] inline magic_type magic_number(const size_t max)
     {
 #   if defined(_WIN64) || defined(__x86_64__) || defined(__ppc64__)
@@ -109,5 +119,30 @@ namespace zelix::stl
 #   else
         return (magic_type(1) << 32) / max;
 #   endif
+    }
+
+    /**
+     * \brief Computes the modulo of two numbers using a precomputed magic number.
+     *
+     * This function performs a fast modulo operation using a precomputed magic number,
+     * replacing division with multiplication and bit-shifting for efficiency.
+     * The implementation uses 128-bit arithmetic on 64-bit platforms and 32/64-bit on others.
+     *
+     * \param a The dividend.
+     * \param b The divisor.
+     * \param magic The precomputed magic number for the divisor.
+     * \return The result of a % b.
+     */
+    inline size_t mod(const size_t a, const size_t b, const magic_type magic)
+    {
+#if defined(_WIN64) || defined(__x86_64__) || defined(__ppc64__)
+        const __uint128_t prod = static_cast<__uint128_t>(a) * magic;
+        const size_t quotient = prod >> 64;
+        return a - quotient * b;
+#else
+        const uint64_t prod = static_cast<uint64_t>(a) * magic;
+        const size_t quotient = prod >> 32;
+        return a - quotient * b;
+#endif
     }
 }
