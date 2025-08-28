@@ -89,7 +89,6 @@ namespace zelix::stl::memory
 
         static void deallocate(T *ptr) ///< Deallocate memory at given pointer
         {
-            std::unique_lock lock(mutex_);
             return allocator.dealloc(ptr);
         }
     };
