@@ -74,4 +74,23 @@ namespace zelix::stl::memory
             return allocator.dealloc(ptr);
         }
     };
+
+    template <typename T>
+    class tl_monotonic_resource : public resource<T>
+    {
+        inline static thread_local pmr::lazy_allocator<T> allocator;
+
+    public:
+        template <typename... Args>
+        static T *allocate(Args&&... args) ///< Allocate memory of given size
+        {
+            return allocator.alloc(stl::forward<Args>(args)...);
+        }
+
+        static void deallocate(T *ptr) ///< Deallocate memory at given pointer
+        {
+            std::unique_lock lock(mutex_);
+            return allocator.dealloc(ptr);
+        }
+    };
 }
