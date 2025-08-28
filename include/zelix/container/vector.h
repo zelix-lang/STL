@@ -578,12 +578,13 @@ namespace zelix::stl
              */
             void aggressive_destroy()
             {
-                if (!initialized_)
+                if (!initialized_ || !data)
                 {
                     return;
                 }
 
                 Allocator::deallocate(data); // Deallocate memory
+                data = nullptr;
             }
 
             /**
