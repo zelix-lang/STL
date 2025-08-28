@@ -114,7 +114,7 @@ namespace zelix::stl
                         }
                     }
 
-                    Allocator::deallocate(data); // Deallocate memory
+                    aggressive_destroy(); // Deallocate memory
                 }
             }
         public:
@@ -567,6 +567,23 @@ namespace zelix::stl
             void calibrate(const size_t n)
             {
                 size_ = n;
+            }
+
+            /**
+             * @brief Aggressively destroys the vector without calling destructors.
+             *
+             * This function deallocates the internal storage without calling the destructors
+             * of the contained elements. Use with extreme caution, as it may lead to resource leaks
+             * if the elements manage resources that require proper cleanup.
+             */
+            void aggressive_destroy()
+            {
+                if (!initialized_)
+                {
+                    return;
+                }
+
+                Allocator::deallocate(data); // Deallocate memory
             }
 
             /**
