@@ -257,6 +257,21 @@ namespace zelix::stl
     #       endif
             }
 
+            ostream &operator<<(const char s)
+            {
+#       ifndef _WIN32
+                if (buffer.full())
+                {
+                    flush(); ///< Flush the buffer if it's full
+                }
+
+                buffer.emplace_back(s); ///< Add the character to the buffer
+                return *this;
+#       else
+                std::cout << s; ///< Use standard output for Windows
+#       endif
+            }
+
             ~ostream()
             {
                 flush();
@@ -422,6 +437,16 @@ namespace zelix::stl
             }
 
             concurrent_ostream &operator<<(const char *s)
+            {
+#           ifndef _WIN32
+                std::unique_lock lock(mutex_);
+#           endif
+                ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
+                    operator<<(stl::forward<decltype(s)>(s));
+                return *this;
+            }
+
+            concurrent_ostream &operator<<(const char s)
             {
 #           ifndef _WIN32
                 std::unique_lock lock(mutex_);
