@@ -452,15 +452,15 @@ namespace zelix::stl
 #   else
     inline constexpr auto endl = "\r\n"; ///< Newline character for output streams on Windows
 #   endif
-    inline ostream<STDOUT_FILENO, 1024> stdout; ///< Standard output stream
-    inline ostream<STDERR_FILENO, 1024> stderr; ///< Standard error stream
-    inline auto &cout = stdout; ///< Alias for standard output stream
-    inline auto &cerr = stderr; ///< Alias for standard error stream
+    inline ostream<STDOUT_FILENO, 1024> out; ///< Standard output stream
+    inline ostream<STDERR_FILENO, 1024> err; ///< Standard error stream
+    inline auto &cout = out; ///< Alias for standard output stream
+    inline auto &cerr = err; ///< Alias for standard error stream
 
 #   ifdef ZELIX_STL_USE_CONCURRENT_IO
     inline concurrent_ostream<STDOUT_FILENO, 1024> cstdout; ///< Standard output stream
     inline concurrent_ostream<STDERR_FILENO, 1024> cstderr; ///< Standard error stream
-    inline auto &ccout = stdout; ///< Alias for standard output stream
-    inline auto &ccerr = stderr; ///< Alias for standard error stream
+    inline auto &ccout = cstdout; ///< Alias for standard output stream
+    inline auto &ccerr = cstderr; ///< Alias for standard error stream
 #   endif
 }
