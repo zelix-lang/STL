@@ -298,10 +298,10 @@ namespace zelix::stl
                     buffer.emplace_back(s[i]); ///< Add the character to the buffer
                 }
 
-                return *this;
     #       else
                 std::cout << s; ///< Use standard output for Windows
     #       endif
+                return *this;
             }
 
             ostream &operator<<(const char s)
@@ -313,10 +313,10 @@ namespace zelix::stl
                 }
 
                 buffer.emplace_back(s); ///< Add the character to the buffer
-                return *this;
 #       else
                 std::cout << s; ///< Use standard output for Windows
 #       endif
+                return *this;
             }
 
             ~ostream()
