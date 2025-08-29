@@ -28,22 +28,46 @@
 //
 
 #pragma once
-#include <mutex>
+
+#include <iostream>
 
 
 #include "display.h"
 #include "owned_string.h"
-#include "zelix/algorithm/ftoi.h"
-#include "zelix/algorithm/itoa.h"
-#ifndef _WIN32
-#   include "ring_buffer.h"
+#if !defined(_WIN32) && defined(__has_include) && __has_include(<unistd.h>)
 #   include <unistd.h>
+#   define ZELIX_STL_FULL_IO_SUPPORT
+#else
+#   if defined(__has_include) && __has_include(<windows.h>)
+#       define ZELIX_STL_FULL_IO_SUPPORT
+#       include <windows.h>
+#   endif
+#endif
+
+#ifdef ZELIX_STL_FULL_IO_SUPPORT
+#   include "ring_buffer.h"
+#   include "zelix/algorithm/ftoi.h"
+#   include "zelix/algorithm/itoa.h"
+#   include <mutex>
 #else
 #   include <iostream> // Fallback to standard library for Windows
 #endif
 
 namespace zelix::stl
 {
+#   if defined(ZELIX_STL_FULL_IO_SUPPORT) && defined(_WIN32)
+    inline auto stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    inline auto stderr_handle = GetStdHandle(STD_ERROR_HANDLE);
+#   endif
+
+#ifndef STDOUT_FILENO
+    inline constexpr auto STDOUT_FILENO = 1;
+#endif
+
+#ifndef STDERR_FILENO
+    inline constexpr auto STDERR_FILENO = 2;
+#endif
+
     namespace pmr
     {
         template <
@@ -57,12 +81,12 @@ namespace zelix::stl
         >
         class ostream
         {
-    #   ifndef _WIN32
+#           ifdef ZELIX_STL_FULL_IO_SUPPORT
             ring_buffer<char, Capacity, UseHeap, Allocator> buffer; ///< Ring buffer to hold the output data
-    #   endif
+#           endif
             void do_write(const char *data, const size_t size)
             {
-    #       ifndef _WIN32
+#           ifdef ZELIX_STL_FULL_IO_SUPPORT
                 // Write data to the file descriptor
                 if (size > Capacity)
                 {
@@ -93,14 +117,15 @@ namespace zelix::stl
                 {
                     flush();
                 }
-    #       else
-                std::cout << data; ///< Use standard output for Windows
-    #       endif
+#           else
+                std::cout << data; ///< Use standard output
+#           endif
             }
 
             template <typename T>
             void do_write_integral(T val)
             {
+#           ifdef ZELIX_STL_FULL_IO_SUPPORT
                 if constexpr (std::is_same_v<T, double> || std::is_same_v<T, float>)
                 {
                     // Convert floating point numbers to string
@@ -119,28 +144,50 @@ namespace zelix::stl
                         "Unsupported type for ostream::do_write_integral"
                     );
                 }
+#           else
+                std::cout << val;
+#           endif
             }
 
         public:
             ostream()
-    #       ifndef _WIN32
+#           ifdef ZELIX_STL_FULL_IO_SUPPORT
                 : buffer()
-    #       endif
-            {}
+#           endif
+            {
+                if constexpr (FileDescriptor != STDERR_FILENO && FileDescriptor != STDOUT_FILENO)
+                {
+                    static_assert(
+                        false,
+                        "Unsupported type for ostream, use STDOUT_FILENO or STDERR_FILENO"
+                    );
+                }
+            }
 
             void flush()
             {
-    #       ifndef _WIN32
+#           ifdef ZELIX_STL_FULL_IO_SUPPORT
                 if (buffer.pos() == 0)
                 {
                     return;
                 }
 
+#               ifdef _WIN32
+                if constexpr (FileDescriptor == STDOUT_FILENO)
+                {
+                    WriteConsoleA(stdout_handle, buffer.ptr(), buffer.pos(), nullptr, nullptr);
+                }
+                else
+                {
+                    WriteConsoleA(stderr_handle, buffer.ptr(), buffer.pos(), nullptr, nullptr);
+                }
+#               else
                 write(FileDescriptor, buffer.ptr(), buffer.pos());
+#               endif
                 buffer.flush(); // Clear the buffer after writing
-    #       else
+#           else
                 std::cout.flush(); // Use standard output flush for Windows
-    #       endif
+#           endif
             }
 
             template <class T = string<>>
@@ -239,7 +286,7 @@ namespace zelix::stl
 
             ostream &operator<<(const char *s)
             {
-    #       ifndef _WIN32
+    #       ifdef ZELIX_STL_FULL_IO_SUPPORT
                 // Append the string on the fly
                 for (size_t i = 0; s[i] != '\0'; ++i)
                 {
@@ -259,7 +306,7 @@ namespace zelix::stl
 
             ostream &operator<<(const char s)
             {
-#       ifndef _WIN32
+#       ifdef ZELIX_STL_FULL_IO_SUPPORT
                 if (buffer.full())
                 {
                     flush(); ///< Flush the buffer if it's full
@@ -289,7 +336,7 @@ namespace zelix::stl
         >
         class concurrent_ostream : ostream<FileDescriptor, Capacity, UseHeap, Allocator>
         {
-#       ifndef _WIN32
+#       ifdef ZELIX_STL_FULL_IO_SUPPORT
             // Mutex for thread-safe operations
             std::mutex mutex_;
 #       endif
@@ -302,7 +349,7 @@ namespace zelix::stl
             template <class T = string<>>
             concurrent_ostream &operator<<(T &&handle)
             {
-#           ifndef _WIN32
+#           ifdef ZELIX_STL_FULL_IO_SUPPORT
                 std::unique_lock lock(mutex_);
 #           endif
                 ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
@@ -312,7 +359,7 @@ namespace zelix::stl
 
             concurrent_ostream &operator<<(const bool val)
             {
-#           ifndef _WIN32
+#           ifdef ZELIX_STL_FULL_IO_SUPPORT
                 std::unique_lock lock(mutex_);
 #           endif
                 ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
@@ -328,7 +375,7 @@ namespace zelix::stl
             >
             concurrent_ostream &operator<<(T &&d)
             {
-#           ifndef _WIN32
+#           ifdef ZELIX_STL_FULL_IO_SUPPORT
                 std::unique_lock lock(mutex_);
 #           endif
                 ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
@@ -338,7 +385,7 @@ namespace zelix::stl
 
             concurrent_ostream &operator<<(const short val)
             {
-#           ifndef _WIN32
+#           ifdef ZELIX_STL_FULL_IO_SUPPORT
                 std::unique_lock lock(mutex_);
 #           endif
                 ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
@@ -348,7 +395,7 @@ namespace zelix::stl
 
             concurrent_ostream &operator<<(const int val)
             {
-#           ifndef _WIN32
+#           ifdef ZELIX_STL_FULL_IO_SUPPORT
                 std::unique_lock lock(mutex_);
 #           endif
                 ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
@@ -358,7 +405,7 @@ namespace zelix::stl
 
             concurrent_ostream &operator<<(const long val)
             {
-#           ifndef _WIN32
+#           ifdef ZELIX_STL_FULL_IO_SUPPORT
                 std::unique_lock lock(mutex_);
 #           endif
                 ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
@@ -368,7 +415,7 @@ namespace zelix::stl
 
             concurrent_ostream &operator<<(const long long val)
             {
-#           ifndef _WIN32
+#           ifdef ZELIX_STL_FULL_IO_SUPPORT
                 std::unique_lock lock(mutex_);
 #           endif
                 ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
@@ -378,7 +425,7 @@ namespace zelix::stl
 
             concurrent_ostream &operator<<(const unsigned short val)
             {
-#           ifndef _WIN32
+#           ifdef ZELIX_STL_FULL_IO_SUPPORT
                 std::unique_lock lock(mutex_);
 #           endif
                 ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
@@ -388,7 +435,7 @@ namespace zelix::stl
 
             concurrent_ostream &operator<<(const unsigned int val)
             {
-#           ifndef _WIN32
+#           ifdef ZELIX_STL_FULL_IO_SUPPORT
                 std::unique_lock lock(mutex_);
 #           endif
                 ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
@@ -398,7 +445,7 @@ namespace zelix::stl
 
             concurrent_ostream &operator<<(const unsigned long val)
             {
-#           ifndef _WIN32
+#           ifdef ZELIX_STL_FULL_IO_SUPPORT
                 std::unique_lock lock(mutex_);
 #           endif
                 ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
@@ -408,7 +455,7 @@ namespace zelix::stl
 
             concurrent_ostream &operator<<(const unsigned long long val)
             {
-#           ifndef _WIN32
+#           ifdef ZELIX_STL_FULL_IO_SUPPORT
                 std::unique_lock lock(mutex_);
 #           endif
                 ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
@@ -418,7 +465,7 @@ namespace zelix::stl
 
             concurrent_ostream &operator<<(const float val)
             {
-#           ifndef _WIN32
+#           ifdef ZELIX_STL_FULL_IO_SUPPORT
                 std::unique_lock lock(mutex_);
 #           endif
                 ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
@@ -428,7 +475,7 @@ namespace zelix::stl
 
             concurrent_ostream &operator<<(const double val)
             {
-#           ifndef _WIN32
+#           ifdef ZELIX_STL_FULL_IO_SUPPORT
                 std::unique_lock lock(mutex_);
 #           endif
                 ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
@@ -438,7 +485,7 @@ namespace zelix::stl
 
             concurrent_ostream &operator<<(const char *s)
             {
-#           ifndef _WIN32
+#           ifdef ZELIX_STL_FULL_IO_SUPPORT
                 std::unique_lock lock(mutex_);
 #           endif
                 ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
@@ -448,7 +495,7 @@ namespace zelix::stl
 
             concurrent_ostream &operator<<(const char s)
             {
-#           ifndef _WIN32
+#           ifdef ZELIX_STL_FULL_IO_SUPPORT
                 std::unique_lock lock(mutex_);
 #           endif
                 ostream<FileDescriptor, Capacity, UseHeap, Allocator>::
