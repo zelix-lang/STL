@@ -360,6 +360,17 @@ namespace zelix::stl
                 return memcmp(buffer, other.buffer, len) == 0;
             }
 
+            bool operator==(const external_string& other) const
+            {
+                if (buffer == nullptr)
+                {
+                    return false; // The string is empty
+                }
+
+                if (len != other.size()) return false; // Lengths differ, not equal
+                return memcmp(buffer, other.ptr(), len) == 0;
+            }
+
             bool operator==(const char *other) const
             {
                 const auto other_len = str::len(other);
