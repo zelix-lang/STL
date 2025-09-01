@@ -152,19 +152,18 @@ namespace zelix::stl
                 other.capacity_ = 0;
             }
 
-            template <class U = std::initializer_list<T>>
-            vector(U &&arr)
+            vector(std::initializer_list<T> init)
                 : initialized_(false)
                 , data(nullptr)
                 , size_(0)
                 , capacity_(0)
             {
-                reserve(arr.size());
-                for (size_t i = 0; i < arr.size(); ++i)
-                {
-                    emplace_back(stl::move(arr[i]));
-                }
+                reserve(init.size());
+
+                for (auto &elem : init)
+                    emplace_back(stl::move(elem));
             }
+
 
             vector& operator=(const vector& other)
             {
