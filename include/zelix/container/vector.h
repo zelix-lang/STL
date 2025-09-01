@@ -29,6 +29,7 @@
 
 #pragma once
 #include <cstdlib>
+#include <initializer_list>
 #include <type_traits>
 #include "zelix/except/exception.h"
 #include "zelix/except/out_of_range.h"
@@ -149,6 +150,20 @@ namespace zelix::stl
                 other.initialized_ = false;
                 other.size_ = 0;
                 other.capacity_ = 0;
+            }
+
+            template <class U = std::initializer_list<T>>
+            vector(U &&arr)
+                : initialized_(false)
+                , data(nullptr)
+                , size_(0)
+                , capacity_(0)
+            {
+                reserve(arr.size());
+                for (size_t i = 0; i < arr.size(); ++i)
+                {
+                    emplace_back(stl::move(arr[i]));
+                }
             }
 
             vector& operator=(const vector& other)
