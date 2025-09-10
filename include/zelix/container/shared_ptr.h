@@ -95,6 +95,23 @@ namespace zelix::stl
                 ptr = nullptr;
             }
 
+            void add_ref_count()
+            const {
+                if constexpr (Concurrent)
+                {
+                    if (atomic_ref_count)
+                    {
+                        atomic_ref_count->fetch_add(1); // Increment atomic reference count
+                    }
+                }
+                else
+                {
+                    if (ref_count)
+                    {
+                        ++(*ref_count); // Increment reference count
+                    }
+                }
+            }
         public:
             template <typename ...Args>
             shared_ptr(Args &&...args)
@@ -140,7 +157,7 @@ namespace zelix::stl
                 }
             }
 
-            shared_ptr(const nullptr_t p)
+            shared_ptr(const nullptr_t _)
             noexcept {
                 // Initialize a null shared_ptr
                 ptr = nullptr;
@@ -151,34 +168,28 @@ namespace zelix::stl
             shared_ptr(shared_ptr &&other) noexcept
                 : ref_count(other.ref_count), ptr(other.ptr), atomic_ref_count(other.atomic_ref_count)
             {
-                other.ref_count = nullptr; // Transfer ownership
-                other.ptr = nullptr;
-                other.atomic_ref_count = nullptr;
+                add_ref_count();
+            }
+
+            shared_ptr(const shared_ptr &&other) noexcept
+                : ref_count(other.ref_count), ptr(other.ptr), atomic_ref_count(other.atomic_ref_count)
+            {
+                add_ref_count();
+            }
+
+            shared_ptr(const shared_ptr &other) noexcept
+                : ref_count(other.ref_count), ptr(other.ptr), atomic_ref_count(other.atomic_ref_count)
+            {
+                add_ref_count();
             }
 
             shared_ptr(shared_ptr &other) noexcept
+                : ref_count(other.ref_count), ptr(other.ptr), atomic_ref_count(other.atomic_ref_count)
             {
-                if constexpr (Concurrent)
-                {
-                    atomic_ref_count = other.atomic_ref_count;
-                    if (atomic_ref_count)
-                    {
-                        atomic_ref_count->fetch_add(1); // Increment atomic reference count
-                    }
-                }
-                else
-                {
-                    ref_count = other.ref_count;
-                    if (ref_count)
-                    {
-                        ++(*ref_count); // Increment reference count
-                    }
-                }
-
-                ptr = other.ptr; // Share the managed object
+                add_ref_count();
             }
 
-            shared_ptr &operator=(shared_ptr &&other) noexcept
+            shared_ptr &operator=(const shared_ptr &other) noexcept
             {
                 if (this != &other)
                 {
@@ -202,12 +213,38 @@ namespace zelix::stl
                     ref_count = other.ref_count;
                     ptr = other.ptr;
                     atomic_ref_count = other.atomic_ref_count;
-
-                    other.ref_count = nullptr; // Reset other to a null state
-                    other.ptr = nullptr;
-                    other.atomic_ref_count = nullptr;
+                    add_ref_count();
                 }
 
+                return *this;
+            }
+
+            shared_ptr &operator=(shared_ptr &&other) noexcept
+            {
+                if (this != &other)
+                {
+                    // Decrement current reference count
+                    if constexpr (Concurrent)
+                    {
+                        if (atomic_ref_count && --(*atomic_ref_count) == 0)
+                            destroy();
+                    }
+                    else
+                    {
+                        if (ref_count && --(*ref_count) == 0)
+                            destroy();
+                    }
+
+                    // Steal from other
+                    ptr = other.ptr;
+                    ref_count = other.ref_count;
+                    atomic_ref_count = other.atomic_ref_count;
+
+                    // Nullify other
+                    other.ptr = nullptr;
+                    other.ref_count = nullptr;
+                    other.atomic_ref_count = nullptr;
+                }
                 return *this;
             }
 
