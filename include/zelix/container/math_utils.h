@@ -46,7 +46,7 @@ namespace zelix::stl
         typename = std::enable_if_t<std::is_integral_v<U>>,
         typename = std::enable_if_t<std::is_integral_v<Return>>
     >
-    [[nodiscard]] Return max(T a, U b)
+    [[nodiscard]] constexpr Return max(T a, U b)
     {
         if (a < b)
         {
@@ -78,7 +78,7 @@ namespace zelix::stl
         typename = std::enable_if_t<std::is_integral_v<U>>,
         typename = std::enable_if_t<std::is_integral_v<Return>>
     >
-    [[nodiscard]] Return min(T a, U b)
+    [[nodiscard]] constexpr Return min(T a, U b)
     {
         if (a > b)
         {
