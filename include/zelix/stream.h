@@ -28,8 +28,8 @@
 //
 
 #pragma once
-#include "zelix//vector.h"
-#include "zelix//optional.h"
+#include "zelix/vector.h"
+#include "zelix/optional.h"
 
 namespace zelix::stl
 {

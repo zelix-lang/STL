@@ -33,9 +33,9 @@
 
 #include "array_resource.h"
 #include "resource.h"
-#include "zelix//forward.h"
-#include "zelix//math_utils.h"
-#include "zelix//move.h"
+#include "zelix/forward.h"
+#include "zelix/math_utils.h"
+#include "zelix/move.h"
 
 namespace zelix::stl::memory
 {
