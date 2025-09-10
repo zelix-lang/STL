@@ -78,6 +78,7 @@ namespace zelix::stl
 
             void destroy()
             {
+                if (!ptr) return;
                 Allocator::deallocate(ptr); // Deallocate the managed object memory
 
                 if constexpr (Concurrent)
@@ -137,6 +138,14 @@ namespace zelix::stl
                     ref_count = RefCountAllocator::allocate(); // Allocate memory for reference count
                     *ref_count = 1; // Initialize reference count
                 }
+            }
+
+            shared_ptr(const nullptr_t p)
+            noexcept {
+                // Initialize a null shared_ptr
+                ptr = nullptr;
+                ref_count = nullptr;
+                atomic_ref_count = nullptr;
             }
 
             shared_ptr(shared_ptr &&other) noexcept
