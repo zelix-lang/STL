@@ -28,10 +28,8 @@
 //
 
 #pragma once
-#include <cstdlib>
 #include <initializer_list>
 #include <type_traits>
-#include "zelix/except/exception.h"
 #include "zelix/except/out_of_range.h"
 #include "zelix/except/uninitialized_memory.h"
 #include "zelix/memory/array_resource.h"
