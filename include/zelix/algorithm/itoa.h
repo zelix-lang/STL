@@ -28,7 +28,7 @@
 //
 
 #pragma once
-#include "zelix/container/owned_string.h"
+#include "zelix//owned_string.h"
 
 namespace zelix::stl::algorithm
 {

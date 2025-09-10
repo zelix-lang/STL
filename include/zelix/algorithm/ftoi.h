@@ -30,7 +30,7 @@
 #pragma once
 #include <cstring>
 
-#include "zelix/container/string_utils.h"
+#include "zelix//string_utils.h"
 
 namespace zelix::stl::algorithm {
     inline size_t dtoi(char* buffer, double value, int decimals)
