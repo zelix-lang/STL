@@ -28,7 +28,6 @@
 //
 
 #pragma once
-#include "delist.h"
 #include "forward.h"
 #include "zelix/except/out_of_range.h"
 #include "zelix/memory/resource.h"
