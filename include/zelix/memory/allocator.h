@@ -29,8 +29,8 @@
 
 #pragma once
 
-#include "zelix//list.h"
-#include "zelix//vector.h"
+#include "zelix/list.h"
+#include "zelix/vector.h"
 #include "zelix/except/invalid_operation.h"
 
 namespace zelix::stl::memory
