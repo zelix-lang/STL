@@ -255,6 +255,12 @@ namespace zelix::stl
 
             bool operator==(const shared_ptr &other) const
             {
+                if (ptr == nullptr && other.ptr == nullptr)
+                    return true; // Both are null pointers
+
+                if (ptr == nullptr || other.ptr == nullptr)
+                    return false; // One is null, the other is not
+
                 return *ptr == *other.ptr; // Compare the managed objects
             }
 
