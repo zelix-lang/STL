@@ -168,13 +168,9 @@ namespace zelix::stl
             shared_ptr(shared_ptr &&other) noexcept
                 : ref_count(other.ref_count), ptr(other.ptr), atomic_ref_count(other.atomic_ref_count)
             {
-                add_ref_count();
-            }
-
-            shared_ptr(const shared_ptr &&other) noexcept
-                : ref_count(other.ref_count), ptr(other.ptr), atomic_ref_count(other.atomic_ref_count)
-            {
-                add_ref_count();
+                other.ptr = nullptr;
+                other.ref_count = nullptr;
+                other.atomic_ref_count = nullptr;
             }
 
             shared_ptr(const shared_ptr &other) noexcept
