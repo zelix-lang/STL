@@ -29,6 +29,7 @@
 
 #pragma once
 #include "forward.h"
+#include "move.h"
 
 namespace zelix::stl
 {
@@ -49,18 +50,66 @@ namespace zelix::stl
 
     public:
         /**
-         * \brief Copy constructor.
-         *
-         * Performs a member-wise copy of the pair.
-         */
-        constexpr pair(const pair&) = default;
+ * \brief Copy constructor.
+ *
+ * Constructs a pair by copying the elements from another pair.
+ *
+ * \param other The pair to copy from.
+ */
+        pair(const pair &other)
+        {
+            new (first_) K(other.first());
+            new (second_) V(other.second());
+        }
 
         /**
          * \brief Move constructor.
          *
-         * Moves the contents of another pair into this one.
+         * Constructs a pair by moving the elements from another pair.
+         *
+         * \param other The pair to move from.
          */
-        constexpr pair(pair&&) = default;
+        pair(pair &&other) noexcept
+        {
+            new (first_) K(stl::move(other.first()));
+            new (second_) V(stl::move(other.second()));
+        }
+
+        /**
+         * \brief Copy assignment operator.
+         *
+         * Assigns the elements from another pair to this pair.
+         *
+         * \param other The pair to copy from.
+         * \return Reference to this pair.
+         */
+        pair &operator=(const pair &other)
+        {
+            if (this != &other) {
+                first() = other.first();
+                second() = other.second();
+            }
+            return *this;
+        }
+
+        /**
+         * \brief Move assignment operator.
+         *
+         * Moves the elements from another pair to this pair.
+         *
+         * \param other The pair to move from.
+         * \return Reference to this pair.
+         */
+        pair &operator=(pair &&other) noexcept
+        {
+            if (this != &other)
+            {
+                first() = stl::move(other.first());
+                second() = stl::move(other.second());
+            }
+
+            return *this;
+        }
 
         /**
          * \brief Constructs a pair from two values.
