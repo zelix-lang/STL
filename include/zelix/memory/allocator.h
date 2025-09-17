@@ -138,12 +138,10 @@ namespace zelix::stl::memory
         {
             stl::pmr::list<page<T, Capacity, CallDestructors, Allocator>, InnerAllocator> pages;
             stl::pmr::vector<T *, FreeListGrowthFactor, FreeListInitialCapacity, FreeListAllocator> free_list;
-            size_t total_allocated = 0;
 
         public:
             T *alloc(auto&&... args)
             {
-                total_allocated++;
                 // Check the free list first
                 if (!free_list.empty())
                 {
@@ -173,20 +171,6 @@ namespace zelix::stl::memory
 
             void dealloc(T *ptr)
             {
-                if (total_allocated == 0)
-                {
-                    throw except::invalid_operation("Deallocating more objects than allocated");
-                }
-
-                total_allocated--;
-                if (total_allocated == 0)
-                {
-                    // Free all memory
-                    free_list.aggressive_destroy(); // Clear the free list without calling destructors
-                    pages.clear(); // Clear the vector of pages
-                    return;
-                }
-
                 free_list.push_back(ptr);
             }
 
