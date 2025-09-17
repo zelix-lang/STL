@@ -595,6 +595,7 @@ namespace zelix::stl
 
                 Allocator::deallocate(data); // Deallocate memory
                 data = nullptr;
+                initialized_ = false;
             }
 
             /**
