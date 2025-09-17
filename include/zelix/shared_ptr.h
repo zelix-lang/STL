@@ -265,6 +265,8 @@ namespace zelix::stl
 
             ~shared_ptr()
             {
+                if (!ptr) return; // Nothing to do for null pointer
+
                 if constexpr (Concurrent)
                 {
                     if (atomic_ref_count && --(*atomic_ref_count) == 0)
