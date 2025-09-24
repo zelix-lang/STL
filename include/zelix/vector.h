@@ -288,7 +288,8 @@ namespace zelix::stl
              * @return T The last element, moved from the vector.
              * @note Use with caution: the destructor is not called for the removed element.
              */
-            T pop_back_move() {
+            T pop_back_move()
+            {
                 --size_;
                 return stl::move(data[size_]);
             }
