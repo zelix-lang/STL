@@ -290,7 +290,7 @@ namespace zelix::stl
              */
             T pop_back_move() {
                 --size_;
-                return std::move(data[size_]);
+                return stl::move(data[size_]);
             }
 
             /**
