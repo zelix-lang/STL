@@ -219,8 +219,7 @@ namespace zelix::stl
     }
 
     using alphabetic_trie = pmr::alphabetic_trie<>;
-    using lower_alphabetic_trie = pmr::alphabetic_trie<true>;
     using a_trie = alphabetic_trie;
-    using lower_a_trie = lower_alphabetic_trie;
-    using la_trie = lower_alphabetic_trie;
+    using lower_a_trie = pmr::alphabetic_trie<true>;
+    using la_trie = pmr::alphabetic_trie<true>;
 }
