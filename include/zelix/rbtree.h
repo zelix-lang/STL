@@ -93,6 +93,8 @@ namespace zelix::stl
             // Insert a key (duplicates are ignored)
             void insert(const T &key)
             {
+                len_++;
+
                 __rb_node<T> *z = ChildrenAllocator::allocate(key, true, nil_, nil_, nullptr);
                 __rb_node<T> *y = nil_;
                 __rb_node<T> *x = root_;
@@ -109,6 +111,7 @@ namespace zelix::stl
                         return;
                     }
                 }
+
                 z->parent = y;
                 if (y == nil_)
                     root_ = z;
@@ -123,6 +126,9 @@ namespace zelix::stl
             // Remove a key (if present)
             bool erase(const T &key)
             {
+                if (len_ == 0) return false; // Tree is empty
+                len_--;
+
                 __rb_node<T> *z = find_node(root_, key);
                 if (z == nil_)
                     return false;
@@ -167,9 +173,20 @@ namespace zelix::stl
             // Check if a key exists in the tree
             bool contains(const T &key) const { return find_node(root_, key) != nil_; }
 
+            [[nodiscard]] size_t size()
+            const {
+                return len_;
+            }
+
+            [[nodiscard]] bool empty()
+            const {
+                return len_ == 0;
+            }
+
         private:
             __rb_node<T> *root_; // Root of the tree
             __rb_node<T> *nil_;  // Sentinel NIL node
+            size_t len_; // Number of nodes in the tree
 
             // Left-rotate the subtree rooted at x
             void left_rotate(__rb_node<T> *x)
