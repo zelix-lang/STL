@@ -73,18 +73,40 @@ namespace zelix::stl
          * @tparam ChildrenAllocator Allocator for tree nodes.
          * @tparam DestructorQueueAllocator Allocator for the destructor queue.
          */
-        template<typename T, typename Value = void, bool IsPair = false, double DestructorQueueGrowthFactor = 1.8,
-                 int DestructorQueueInitialCapacity = 25,
-                 typename ChildrenAllocator =
-                         memory::monotonic_resource<std::conditional_t<IsPair, __rb_pair<T, Value>, __rb_node<T>>>,
-                 typename DestructorQueueAllocator = memory::system_array_resource<
-                         std::conditional_t<IsPair, __rb_pair<T, Value> *, __rb_node<T> *>>,
-                 typename = std::enable_if_t<std::is_base_of_v<
-                         memory::resource<std::conditional_t<IsPair, __rb_pair<T, Value>, __rb_node<T>>>,
-                         ChildrenAllocator>>
-                 // No SFINAE check for DestructorQueueAllocator necessary
-                 // since vector<> already does that
-                 >
+        template<
+            typename T,
+            typename Value = float,
+            bool IsPair = false,
+            double DestructorQueueGrowthFactor = 1.8,
+            int DestructorQueueInitialCapacity = 25,
+            typename ChildrenAllocator = memory::monotonic_resource<
+                std::conditional_t<
+                    IsPair,
+                    __rb_pair<T, Value>,
+                    __rb_node<T>
+                >
+            >,
+            typename DestructorQueueAllocator = memory::system_array_resource<
+                std::conditional_t<
+                    IsPair,
+                    __rb_pair<T, Value> *,
+                    __rb_node<T> *
+                >
+            >,
+            typename = std::enable_if_t<
+                std::is_base_of_v<
+                memory::resource<
+                    std::conditional_t<
+                        IsPair,
+                        __rb_pair<T, Value>,
+                        __rb_node<T>
+                    >
+                >,
+                ChildrenAllocator>
+            >
+            // No SFINAE check for DestructorQueueAllocator necessary
+            // since vector<> already does that
+        >
         class rb_tree
         {
         public:
