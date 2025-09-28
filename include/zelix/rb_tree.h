@@ -136,36 +136,17 @@ namespace zelix::stl
             }
 
             // Insert a key (duplicates are ignored)
+            template <bool B = IsPair, typename = std::enable_if_t<!B>>
             void insert(const T &key)
             {
-                len_++;
-
                 child *z = ChildrenAllocator::allocate(key, true, nil_, nil_, nullptr);
-                child *y = nil_;
-                child *x = root_;
-                while (x != nil_)
-                {
-                    y = x;
-                    if (z->key < x->key)
-                        x = x->left;
-                    else if (x->key < z->key)
-                        x = x->right;
-                    else
-                    { // equal -> ignore duplicate
-                        ChildrenAllocator::deallocate(z);
-                        return;
-                    }
-                }
+                unified_insert(z);
+            }
 
-                z->parent = y;
-                if (y == nil_)
-                    root_ = z;
-                else if (z->key < y->key)
-                    y->left = z;
-                else
-                    y->right = z;
-
-                insert_fixup(z);
+            template <bool B = IsPair, typename = std::enable_if_t<B>>
+            void insert(const T& key, const Value& value) {
+                child *z = ChildrenAllocator::allocate(key, value, true, nil_, nil_, nullptr);
+                unified_insert(z);
             }
 
             // Remove a key (if present)
@@ -232,6 +213,39 @@ namespace zelix::stl
             child *root_; // Root of the tree
             child *nil_;  // Sentinel NIL node
             size_t len_; // Number of nodes in the tree
+
+            // Insertion
+            void unified_insert(child *c)
+            {
+                len_++;
+                child *y = nil_;
+                child *x = root_;
+                while (x != nil_)
+                {
+                    y = x;
+                    if (c->key < x->key)
+                        x = x->left;
+                    else if (x->key < c->key)
+                        x = x->right;
+                    else
+                    { // equal -> ignore duplicate
+                        ChildrenAllocator::deallocate(z);
+                        return;
+                    }
+                }
+
+                c->parent = y;
+                if (y == nil_)
+                    root_ = c;
+
+                else if (c->key < y->key)
+                    y->left = c;
+
+                else
+                    y->right = c;
+
+                insert_fixup(c);
+            }
 
             // Left-rotate the subtree rooted at x
             void left_rotate(child *x)
