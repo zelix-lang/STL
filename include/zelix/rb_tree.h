@@ -43,11 +43,29 @@ namespace zelix::stl
             T key;
             bool red;
             __rb_node *left, *right, *parent;
+
             __rb_node(
                 const T &k, const bool red,
                 __rb_node *l, __rb_node *r, __rb_node *p
             )
                 : key(k), red(red), left(l), right(r), parent(p)
+            {}
+        };
+
+        template <typename Key, typename Value>
+        struct __rb_pair
+        {
+            Key key;
+            Value value;
+            bool red;
+            __rb_pair *left, *right, *parent;
+
+            __rb_pair(
+                const Key &k, const Value &v, const bool red,
+                __rb_pair *l, __rb_pair *r, __rb_pair *p
+            )
+                : key(k), value(v), red(red), left(l),
+                right(r), parent(p)
             {}
         };
 
@@ -62,12 +80,32 @@ namespace zelix::stl
          */
         template<
             typename T,
+            typename Value = void,
+            bool IsPair = false,
             double DestructorQueueGrowthFactor = 1.8,
             int DestructorQueueInitialCapacity = 25,
-            typename ChildrenAllocator = memory::monotonic_resource<__rb_node<T>>,
-            typename DestructorQueueAllocator = memory::system_array_resource<__rb_node<T>*>,
+            typename ChildrenAllocator = memory::monotonic_resource<
+                std::conditional_t<
+                    IsPair,
+                    __rb_pair<T, Value>,
+                    __rb_node<T>
+                >
+            >,
+            typename DestructorQueueAllocator = memory::system_array_resource<
+                std::conditional_t<
+                    IsPair,
+                    __rb_pair<T, Value> *,
+                    __rb_node<T> *
+                >
+            >,
             typename = std::enable_if_t<
-                std::is_base_of_v<memory::resource<__rb_node<T>>, ChildrenAllocator>
+                std::is_base_of_v<memory::resource<
+                    std::conditional_t<
+                        IsPair,
+                        __rb_pair<T, Value>,
+                        __rb_node<T>
+                    >
+                >, ChildrenAllocator>
             >
             // No SFINAE check for DestructorQueueAllocator necessary
             // since vector<> already does that
@@ -75,6 +113,12 @@ namespace zelix::stl
         class rb_tree
         {
         public:
+            using child = std::conditional_t<
+                IsPair,
+                __rb_pair<T, Value>,
+                __rb_node<T>
+            >;
+
             // Constructor: initializes the tree with a sentinel NIL node
             rb_tree() : root_(nullptr)
             {
@@ -96,9 +140,9 @@ namespace zelix::stl
             {
                 len_++;
 
-                __rb_node<T> *z = ChildrenAllocator::allocate(key, true, nil_, nil_, nullptr);
-                __rb_node<T> *y = nil_;
-                __rb_node<T> *x = root_;
+                child *z = ChildrenAllocator::allocate(key, true, nil_, nil_, nullptr);
+                child *y = nil_;
+                child *x = root_;
                 while (x != nil_)
                 {
                     y = x;
@@ -130,11 +174,11 @@ namespace zelix::stl
                 if (len_ == 0) return false; // Tree is empty
                 len_--;
 
-                __rb_node<T> *z = find_node(root_, key);
+                child *z = find_node(root_, key);
                 if (z == nil_)
                     return false;
-                __rb_node<T> *y = z;
-                __rb_node<T> *x = nullptr;
+                child *y = z;
+                child *x = nullptr;
                 bool y_original_color = y->red;
                 if (z->left == nil_)
                 {
@@ -185,14 +229,14 @@ namespace zelix::stl
             }
 
         private:
-            __rb_node<T> *root_; // Root of the tree
-            __rb_node<T> *nil_;  // Sentinel NIL node
+            child *root_; // Root of the tree
+            child *nil_;  // Sentinel NIL node
             size_t len_; // Number of nodes in the tree
 
             // Left-rotate the subtree rooted at x
-            void left_rotate(__rb_node<T> *x)
+            void left_rotate(child *x)
             {
-                __rb_node<T> *y = x->right;
+                child *y = x->right;
                 x->right = y->left;
                 if (y->left != nil_)
                     y->left->parent = x;
@@ -210,9 +254,9 @@ namespace zelix::stl
             }
 
             // Right-rotate the subtree rooted at x
-            void right_rotate(__rb_node<T> *x)
+            void right_rotate(child *x)
             {
-                __rb_node<T> *y = x->left;
+                child *y = x->left;
                 x->left = y->right;
 
                 if (y->right != nil_)
@@ -232,7 +276,7 @@ namespace zelix::stl
             }
 
             // Restore red-black properties after insertion
-            void insert_fixup(__rb_node<T> *z)
+            void insert_fixup(child *z)
             {
                 while (z->parent->red)
                 {
@@ -262,7 +306,7 @@ namespace zelix::stl
                     }
                     else
                     {
-                        if (__rb_node<T> *y = z->parent->parent->left; y->red)
+                        if (child *y = z->parent->parent->left; y->red)
                         {
                             // Case 1: uncle is red
                             z->parent->red = false;
@@ -289,7 +333,7 @@ namespace zelix::stl
             }
 
             // Replace subtree u with subtree v
-            void transplant(__rb_node<T> *u, __rb_node<T> *v)
+            void transplant(child *u, child *v)
             {
                 if (u->parent == nil_)
                     root_ = v;
@@ -301,13 +345,13 @@ namespace zelix::stl
             }
 
             // Restore red-black properties after deletion
-            void delete_fixup(__rb_node<T> *x)
+            void delete_fixup(child *x)
             {
                 while (x != root_ && x->red == false)
                 {
                     if (x == x->parent->left)
                     {
-                        __rb_node<T> *w = x->parent->right;
+                        child *w = x->parent->right;
                         if (w->red)
                         {
                             // Case 1: sibling is red
@@ -342,7 +386,7 @@ namespace zelix::stl
                     }
                     else
                     {
-                        __rb_node<T> *w = x->parent->left;
+                        child *w = x->parent->left;
                         if (w->red)
                         {
                             // Case 1: sibling is red
@@ -381,7 +425,7 @@ namespace zelix::stl
             }
 
             // Find the node with the minimum key in subtree x
-            __rb_node<T> *minimum(__rb_node<T> *x) const
+            child *minimum(child *x) const
             {
                 while (x->left != nil_)
                     x = x->left;
@@ -389,7 +433,7 @@ namespace zelix::stl
             }
 
             // Find a node with the given key in subtree x
-            __rb_node<T> *find_node(__rb_node<T> *x, const T &key) const
+            child *find_node(child *x, const T &key) const
             {
                 while (x != nil_)
                 {
@@ -405,13 +449,13 @@ namespace zelix::stl
             }
 
             // Clear all nodes in the subtree rooted at x
-            void clear(__rb_node<T> *x)
+            void clear(child *x)
             {
                 if (x == nil_)
                     return;
 
                 // Use a stack to iteratively delete nodes
-                vector<__rb_node<T> *, DestructorQueueGrowthFactor, DestructorQueueInitialCapacity, DestructorQueueAllocator> stack;
+                vector<child *, DestructorQueueGrowthFactor, DestructorQueueInitialCapacity, DestructorQueueAllocator> stack;
                 stack.push_back(x);
 
                 // Delete iteratively
@@ -432,4 +476,7 @@ namespace zelix::stl
 
     template <typename T>
     using rb_tree = pmr::rb_tree<T>;
+
+    template <typename Key, typename Value>
+    using rb_pair = pmr::rb_tree<Key, Value, true>;
 } // namespace zelix::stl
