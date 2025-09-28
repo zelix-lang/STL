@@ -144,7 +144,8 @@ namespace zelix::stl
             }
 
             template <bool B = IsPair, typename = std::enable_if_t<B>>
-            void insert(const T& key, const Value& value) {
+            void insert(const T& key, const Value& value)
+            {
                 child *z = ChildrenAllocator::allocate(key, value, true, nil_, nil_, nullptr);
                 unified_insert(z);
             }
@@ -184,6 +185,7 @@ namespace zelix::stl
                         y->right = z->right;
                         y->right->parent = y;
                     }
+
                     transplant(z, y);
                     y->left = z->left;
                     y->left->parent = y;
@@ -197,7 +199,10 @@ namespace zelix::stl
             }
 
             // Check if a key exists in the tree
-            bool contains(const T &key) const { return find_node(root_, key) != nil_; }
+            bool contains(const T &key) const
+            {
+                return find_node(root_, key) != nil_;
+            }
 
             [[nodiscard]] size_t size()
             const {
