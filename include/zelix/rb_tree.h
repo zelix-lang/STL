@@ -274,7 +274,7 @@ namespace zelix::stl
                         x = x->right;
                     else
                     { // equal -> ignore duplicate
-                        ChildrenAllocator::deallocate(z);
+                        ChildrenAllocator::deallocate(c);
                         return;
                     }
                 }
