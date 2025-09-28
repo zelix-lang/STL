@@ -35,8 +35,8 @@ namespace zelix::stl::except
     class element_not_found : public exception
     {
     public:
-        explicit element_not_found(const char *msg)
-            : exception(msg)
+        explicit element_not_found()
+            : exception(nullptr)
         {}
     };
 }
