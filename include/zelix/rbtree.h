@@ -30,6 +30,7 @@
 #pragma once
 #include <type_traits>
 
+#include "except/element_not_found.h"
 #include "memory/monotonic.h"
 
 namespace zelix::stl
@@ -399,7 +400,8 @@ namespace zelix::stl
                     else
                         return x;
                 }
-                return nil_;
+
+                throw except::element_not_found();
             }
 
             // Clear all nodes in the subtree rooted at x
