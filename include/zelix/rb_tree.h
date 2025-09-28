@@ -211,7 +211,7 @@ namespace zelix::stl
                     return false; // Tree is empty
                 len_--;
 
-                pointer z = find_node(root_, key);
+                pointer z = search(root_, key);
                 if (z == nil_)
                     return false;
                 pointer y = z;
@@ -254,15 +254,25 @@ namespace zelix::stl
             }
 
             // Check if a key exists in the tree
-            bool contains(const T &key) const { return find_node(root_, key) != nil_; }
+            bool contains(const T &key) const
+            {
+                return search(root_, key) != nil_;
+            }
 
-            [[nodiscard]] size_t size() const { return len_; }
+            [[nodiscard]] size_t size() const
+            {
+                return len_;
+            }
 
-            [[nodiscard]] bool empty() const { return len_ == 0; }
+            [[nodiscard]] bool empty() const
+            {
+                return len_ == 0;
+            }
 
             // Find a node with the given key in subtree x
-            pointer find_node(pointer x, const T &key) const
+            pointer search(const T &key) const
             {
+                pointer x = root_;
                 while (x != nil_)
                 {
                     if (key < x->key)
