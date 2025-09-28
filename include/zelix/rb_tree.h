@@ -219,7 +219,7 @@ namespace zelix::stl
                     return false; // Tree is empty
                 len_--;
 
-                pointer z = search(root_, key);
+                pointer z = search(key);
                 if (z == nil_)
                     return false;
                 pointer y = z;
@@ -264,7 +264,7 @@ namespace zelix::stl
             // Check if a key exists in the tree
             bool contains(const T &key) const
             {
-                return search(root_, key) != nil_;
+                return search(key) != nil_;
             }
 
             [[nodiscard]] size_t size() const
