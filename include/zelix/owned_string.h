@@ -30,6 +30,7 @@
 #pragma once
 #include <cstring>
 #include <xxh3.h>
+#include <functional>
 #include "external_string.h"
 #include "string_utils.h"
 #include "zelix/except/out_of_range.h"
@@ -531,6 +532,15 @@ namespace zelix::stl
         {
             const size_t len = str::len(c_str);
             return XXH64(c_str, len, len);
+        }
+    };
+}
+
+namespace std {
+    template<>
+    struct hash<zelix::stl::string> {
+        size_t operator()(const zelix::stl::string& str) const noexcept {
+            return zelix::stl::string_hash{}(str);
         }
     };
 }

@@ -32,6 +32,7 @@
 #include <cstring>
 #include <xxh3.h>
 #include "zelix/except/exception.h"
+#include <functional>
 
 namespace zelix::stl
 {
@@ -113,6 +114,15 @@ namespace zelix::stl
         {
             const size_t len = str::len(c_str);
             return XXH64(c_str, len, len);
+        }
+    };
+}
+
+namespace std {
+    template<>
+    struct hash<zelix::stl::external_string> {
+        size_t operator()(const zelix::stl::external_string& str) const noexcept {
+            return zelix::stl::external_string_hash{}(str);
         }
     };
 }
