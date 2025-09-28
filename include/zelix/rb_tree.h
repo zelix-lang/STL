@@ -44,15 +44,13 @@ namespace zelix::stl
             bool red;
             __rb_node *left, *right, *parent;
 
-            __rb_node(
-                const T &k, const bool red,
-                __rb_node *l, __rb_node *r, __rb_node *p
-            )
-                : key(k), red(red), left(l), right(r), parent(p)
-            {}
+            __rb_node(const T &k, const bool red, __rb_node *l, __rb_node *r, __rb_node *p) :
+                key(k), red(red), left(l), right(r), parent(p)
+            {
+            }
         };
 
-        template <typename Key, typename Value>
+        template<typename Key, typename Value>
         struct __rb_pair
         {
             Key key;
@@ -60,13 +58,10 @@ namespace zelix::stl
             bool red;
             __rb_pair *left, *right, *parent;
 
-            __rb_pair(
-                const Key &k, const Value &v, const bool red,
-                __rb_pair *l, __rb_pair *r, __rb_pair *p
-            )
-                : key(k), value(v), red(red), left(l),
-                right(r), parent(p)
-            {}
+            __rb_pair(const Key &k, const Value &v, const bool red, __rb_pair *l, __rb_pair *r, __rb_pair *p) :
+                key(k), value(v), red(red), left(l), right(r), parent(p)
+            {
+            }
         };
 
         /**
@@ -78,46 +73,26 @@ namespace zelix::stl
          * @tparam ChildrenAllocator Allocator for tree nodes.
          * @tparam DestructorQueueAllocator Allocator for the destructor queue.
          */
-        template<
-            typename T,
-            typename Value = void,
-            bool IsPair = false,
-            double DestructorQueueGrowthFactor = 1.8,
-            int DestructorQueueInitialCapacity = 25,
-            typename ChildrenAllocator = memory::monotonic_resource<
-                std::conditional_t<
-                    IsPair,
-                    __rb_pair<T, Value>,
-                    __rb_node<T>
-                >
-            >,
-            typename DestructorQueueAllocator = memory::system_array_resource<
-                std::conditional_t<
-                    IsPair,
-                    __rb_pair<T, Value> *,
-                    __rb_node<T> *
-                >
-            >,
-            typename = std::enable_if_t<
-                std::is_base_of_v<memory::resource<
-                    std::conditional_t<
-                        IsPair,
-                        __rb_pair<T, Value>,
-                        __rb_node<T>
-                    >
-                >, ChildrenAllocator>
-            >
-            // No SFINAE check for DestructorQueueAllocator necessary
-            // since vector<> already does that
-        >
+        template<typename T, typename Value = void, bool IsPair = false, double DestructorQueueGrowthFactor = 1.8,
+                 int DestructorQueueInitialCapacity = 25,
+                 typename ChildrenAllocator =
+                         memory::monotonic_resource<std::conditional_t<IsPair, __rb_pair<T, Value>, __rb_node<T>>>,
+                 typename DestructorQueueAllocator = memory::system_array_resource<
+                         std::conditional_t<IsPair, __rb_pair<T, Value> *, __rb_node<T> *>>,
+                 typename = std::enable_if_t<std::is_base_of_v<
+                         memory::resource<std::conditional_t<IsPair, __rb_pair<T, Value>, __rb_node<T>>>,
+                         ChildrenAllocator>>
+                 // No SFINAE check for DestructorQueueAllocator necessary
+                 // since vector<> already does that
+                 >
         class rb_tree
         {
         public:
-            using child = std::conditional_t<
-                IsPair,
-                __rb_pair<T, Value>,
-                __rb_node<T>
-            >;
+            using difference_type = std::ptrdiff_t;
+            using value_type = std::conditional_t<IsPair, __rb_pair<T, Value>, __rb_node<T>>;
+            using pointer = value_type *;
+            using reference = value_type &;
+            using iterator_category = std::bidirectional_iterator_tag;
 
             // Constructor: initializes the tree with a sentinel NIL node
             rb_tree() : root_(nullptr)
@@ -136,31 +111,30 @@ namespace zelix::stl
             }
 
             // Insert a key (duplicates are ignored)
-            template <bool B = IsPair, typename = std::enable_if_t<!B>>
+            template<bool B = IsPair, typename = std::enable_if_t<!B>>
             void insert(const T &key)
             {
-                child *z = ChildrenAllocator::allocate(key, true, nil_, nil_, nullptr);
-                unified_insert(z);
+                unified_insert(ChildrenAllocator::allocate(key, true, nil_, nil_, nullptr));
             }
 
-            template <bool B = IsPair, typename = std::enable_if_t<B>>
-            void insert(const T& key, const Value& value)
+            template<bool B = IsPair, typename = std::enable_if_t<B>>
+            void insert(const T &key, const Value &value)
             {
-                child *z = ChildrenAllocator::allocate(key, value, true, nil_, nil_, nullptr);
-                unified_insert(z);
+                unified_insert(ChildrenAllocator::allocate(key, value, true, nil_, nil_, nullptr));
             }
 
             // Remove a key (if present)
             bool erase(const T &key)
             {
-                if (len_ == 0) return false; // Tree is empty
+                if (len_ == 0)
+                    return false; // Tree is empty
                 len_--;
 
-                child *z = find_node(root_, key);
+                pointer z = find_node(root_, key);
                 if (z == nil_)
                     return false;
-                child *y = z;
-                child *x = nullptr;
+                pointer y = z;
+                pointer x = nullptr;
                 bool y_original_color = y->red;
                 if (z->left == nil_)
                 {
@@ -199,23 +173,14 @@ namespace zelix::stl
             }
 
             // Check if a key exists in the tree
-            bool contains(const T &key) const
-            {
-                return find_node(root_, key) != nil_;
-            }
+            bool contains(const T &key) const { return find_node(root_, key) != nil_; }
 
-            [[nodiscard]] size_t size()
-            const {
-                return len_;
-            }
+            [[nodiscard]] size_t size() const { return len_; }
 
-            [[nodiscard]] bool empty()
-            const {
-                return len_ == 0;
-            }
+            [[nodiscard]] bool empty() const { return len_ == 0; }
 
             // Find a node with the given key in subtree x
-            child *find_node(child *x, const T &key) const
+            pointer find_node(pointer x, const T &key) const
             {
                 while (x != nil_)
                 {
@@ -231,13 +196,14 @@ namespace zelix::stl
             }
 
             // Clear all nodes in the subtree rooted at x
-            void clear(child *x)
+            void clear(pointer x)
             {
                 if (x == nil_)
                     return;
 
                 // Use a stack to iteratively delete nodes
-                vector<child *, DestructorQueueGrowthFactor, DestructorQueueInitialCapacity, DestructorQueueAllocator> stack;
+                vector<pointer, DestructorQueueGrowthFactor, DestructorQueueInitialCapacity, DestructorQueueAllocator>
+                        stack;
                 stack.push_back(x);
 
                 // Delete iteratively
@@ -254,17 +220,113 @@ namespace zelix::stl
                 }
             }
 
+            class iterator
+            {
+            public:
+                iterator(pointer node, pointer nil) : node_(node), nil_(nil) {}
+
+                reference operator*() const
+                {
+                    return *node_;
+                }
+
+                pointer operator->() const
+                {
+                    return node_;
+                }
+
+                iterator &operator++()
+                { // inorder successor
+                    if (node_->right != nil_)
+                    {
+                        node_ = node_->right;
+                        while (node_->left != nil_)
+                            node_ = node_->left;
+                    }
+                    else
+                    {
+                        auto y = node_->parent;
+                        while (y != nil_ && node_ == y->right)
+                        {
+                            node_ = y;
+                            y = y->parent;
+                        }
+                        node_ = y;
+                    }
+                    return *this;
+                }
+
+                iterator operator++(int)
+                {
+                    iterator tmp = *this;
+                    ++(*this);
+                    return tmp;
+                }
+
+                iterator &operator--()
+                { // inorder predecessor
+                    if (node_->left != nil_)
+                    {
+                        node_ = node_->left;
+                        while (node_->right != nil_)
+                            node_ = node_->right;
+                    }
+                    else
+                    {
+                        auto y = node_->parent;
+                        while (y != nil_ && node_ == y->left)
+                        {
+                            node_ = y;
+                            y = y->parent;
+                        }
+                        node_ = y;
+                    }
+                    return *this;
+                }
+
+                iterator operator--(int)
+                {
+                    iterator tmp = *this;
+                    --(*this);
+                    return tmp;
+                }
+
+                bool operator==(const iterator &other) const { return node_ == other.node_; }
+                bool operator!=(const iterator &other) const { return node_ != other.node_; }
+
+                pointer get_node() const { return node_; }
+
+            private:
+                pointer node_;
+                pointer nil_;
+            };
+
+            iterator begin()
+            {
+                pointer x = root_;
+                if (x == nil_)
+                    return end();
+                while (x->left != nil_)
+                    x = x->left;
+                return iterator(x, nil_);
+            }
+
+            iterator end()
+            {
+                return iterator(nil_, nil_);
+            }
+
         private:
-            child *root_; // Root of the tree
-            child *nil_;  // Sentinel NIL node
+            pointer root_; // Root of the tree
+            pointer nil_; // Sentinel NIL node
             size_t len_; // Number of nodes in the tree
 
             // Insertion
-            void unified_insert(child *c)
+            void unified_insert(pointer c)
             {
                 len_++;
-                child *y = nil_;
-                child *x = root_;
+                pointer y = nil_;
+                pointer x = root_;
                 while (x != nil_)
                 {
                     y = x;
@@ -293,9 +355,9 @@ namespace zelix::stl
             }
 
             // Left-rotate the subtree rooted at x
-            void left_rotate(child *x)
+            void left_rotate(pointer x)
             {
-                child *y = x->right;
+                pointer y = x->right;
                 x->right = y->left;
                 if (y->left != nil_)
                     y->left->parent = x;
@@ -313,9 +375,9 @@ namespace zelix::stl
             }
 
             // Right-rotate the subtree rooted at x
-            void right_rotate(child *x)
+            void right_rotate(pointer x)
             {
-                child *y = x->left;
+                pointer y = x->left;
                 x->left = y->right;
 
                 if (y->right != nil_)
@@ -335,7 +397,7 @@ namespace zelix::stl
             }
 
             // Restore red-black properties after insertion
-            void insert_fixup(child *z)
+            void insert_fixup(pointer z)
             {
                 while (z->parent->red)
                 {
@@ -365,7 +427,7 @@ namespace zelix::stl
                     }
                     else
                     {
-                        if (child *y = z->parent->parent->left; y->red)
+                        if (pointer y = z->parent->parent->left; y->red)
                         {
                             // Case 1: uncle is red
                             z->parent->red = false;
@@ -392,7 +454,7 @@ namespace zelix::stl
             }
 
             // Replace subtree u with subtree v
-            void transplant(child *u, child *v)
+            void transplant(pointer u, pointer v)
             {
                 if (u->parent == nil_)
                     root_ = v;
@@ -404,13 +466,13 @@ namespace zelix::stl
             }
 
             // Restore red-black properties after deletion
-            void delete_fixup(child *x)
+            void delete_fixup(pointer x)
             {
                 while (x != root_ && x->red == false)
                 {
                     if (x == x->parent->left)
                     {
-                        child *w = x->parent->right;
+                        pointer w = x->parent->right;
                         if (w->red)
                         {
                             // Case 1: sibling is red
@@ -445,7 +507,7 @@ namespace zelix::stl
                     }
                     else
                     {
-                        child *w = x->parent->left;
+                        pointer w = x->parent->left;
                         if (w->red)
                         {
                             // Case 1: sibling is red
@@ -484,7 +546,7 @@ namespace zelix::stl
             }
 
             // Find the node with the minimum key in subtree x
-            child *minimum(child *x) const
+            pointer minimum(pointer x) const
             {
                 while (x->left != nil_)
                     x = x->left;
@@ -493,9 +555,9 @@ namespace zelix::stl
         };
     } // namespace pmr
 
-    template <typename T>
+    template<typename T>
     using rb_tree = pmr::rb_tree<T>;
 
-    template <typename Key, typename Value>
+    template<typename Key, typename Value>
     using rb_pair = pmr::rb_tree<Key, Value, true>;
 } // namespace zelix::stl
