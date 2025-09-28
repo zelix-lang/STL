@@ -56,7 +56,7 @@ namespace zelix::stl
         {
             using tree = rb_tree<
                 Key,
-                void,
+                float,
                 false,
                 DestructorQueueGrowthFactor,
                 DestructorQueueInitialCapacity,
