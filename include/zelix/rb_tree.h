@@ -209,6 +209,46 @@ namespace zelix::stl
                 return len_ == 0;
             }
 
+            // Find a node with the given key in subtree x
+            child *find_node(child *x, const T &key) const
+            {
+                while (x != nil_)
+                {
+                    if (key < x->key)
+                        x = x->left;
+                    else if (x->key < key)
+                        x = x->right;
+                    else
+                        return x;
+                }
+
+                throw except::element_not_found();
+            }
+
+            // Clear all nodes in the subtree rooted at x
+            void clear(child *x)
+            {
+                if (x == nil_)
+                    return;
+
+                // Use a stack to iteratively delete nodes
+                vector<child *, DestructorQueueGrowthFactor, DestructorQueueInitialCapacity, DestructorQueueAllocator> stack;
+                stack.push_back(x);
+
+                // Delete iteratively
+                while (!stack.empty())
+                {
+                    auto node = stack.pop_back_move();
+
+                    if (node->left != nil_)
+                        stack.push_back(node->left);
+                    if (node->right != nil_)
+                        stack.push_back(node->right);
+
+                    ChildrenAllocator::deallocate(node);
+                }
+            }
+
         private:
             child *root_; // Root of the tree
             child *nil_;  // Sentinel NIL node
@@ -444,46 +484,6 @@ namespace zelix::stl
                 while (x->left != nil_)
                     x = x->left;
                 return x;
-            }
-
-            // Find a node with the given key in subtree x
-            child *find_node(child *x, const T &key) const
-            {
-                while (x != nil_)
-                {
-                    if (key < x->key)
-                        x = x->left;
-                    else if (x->key < key)
-                        x = x->right;
-                    else
-                        return x;
-                }
-
-                throw except::element_not_found();
-            }
-
-            // Clear all nodes in the subtree rooted at x
-            void clear(child *x)
-            {
-                if (x == nil_)
-                    return;
-
-                // Use a stack to iteratively delete nodes
-                vector<child *, DestructorQueueGrowthFactor, DestructorQueueInitialCapacity, DestructorQueueAllocator> stack;
-                stack.push_back(x);
-
-                // Delete iteratively
-                while (!stack.empty())
-                {
-                    auto node = stack.pop_back_move();
-
-                    if (node->left != nil_)
-                        stack.push_back(node->left);
-                    if (node->right != nil_)
-                        stack.push_back(node->right);
-
-                    ChildrenAllocator::deallocate(node);
-                }
             }
         };
     } // namespace pmr
