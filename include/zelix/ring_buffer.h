@@ -49,9 +49,9 @@ namespace zelix::stl
             typename T,
             size_t Max,
             bool UseHeap,
-            typename Allocator = memory::system_array_resource<char>,
+            typename Allocator = memory::system_array_resource<T>,
             typename = std::enable_if_t<
-                std::is_base_of_v<memory::array_resource<char>, Allocator>
+                std::is_base_of_v<memory::array_resource<T>, Allocator>
             >
         >
         class ring_buffer
