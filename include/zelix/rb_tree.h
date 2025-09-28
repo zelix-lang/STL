@@ -286,7 +286,13 @@ namespace zelix::stl
             // Check if a key exists in the tree
             bool contains(const T &key) const
             {
-                return search(key) != nil_;
+                try
+                {
+                    return search(key);
+                } catch (...)
+                {
+                    return false;
+                }
             }
 
             [[nodiscard]] size_t size() const
