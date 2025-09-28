@@ -107,7 +107,7 @@ namespace zelix::stl
              */
             Value &get(const Key &key)
             {
-                return tree_.find_node(tree_.root_, key);
+                return tree_.search(key);
             }
 
             /**
