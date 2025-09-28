@@ -94,6 +94,87 @@ namespace zelix::stl
             using reference = value_type &;
             using iterator_category = std::bidirectional_iterator_tag;
 
+            class iterator
+            {
+            public:
+                iterator(pointer node, pointer nil) : node_(node), nil_(nil) {}
+
+                reference operator*() const
+                {
+                    return *node_;
+                }
+
+                pointer operator->() const
+                {
+                    return node_;
+                }
+
+                iterator &operator++()
+                { // inorder successor
+                    if (node_->right != nil_)
+                    {
+                        node_ = node_->right;
+                        while (node_->left != nil_)
+                            node_ = node_->left;
+                    }
+                    else
+                    {
+                        auto y = node_->parent;
+                        while (y != nil_ && node_ == y->right)
+                        {
+                            node_ = y;
+                            y = y->parent;
+                        }
+                        node_ = y;
+                    }
+                    return *this;
+                }
+
+                iterator operator++(int)
+                {
+                    iterator tmp = *this;
+                    ++(*this);
+                    return tmp;
+                }
+
+                iterator &operator--()
+                { // inorder predecessor
+                    if (node_->left != nil_)
+                    {
+                        node_ = node_->left;
+                        while (node_->right != nil_)
+                            node_ = node_->right;
+                    }
+                    else
+                    {
+                        auto y = node_->parent;
+                        while (y != nil_ && node_ == y->left)
+                        {
+                            node_ = y;
+                            y = y->parent;
+                        }
+                        node_ = y;
+                    }
+                    return *this;
+                }
+
+                iterator operator--(int)
+                {
+                    iterator tmp = *this;
+                    --(*this);
+                    return tmp;
+                }
+
+                bool operator==(const iterator &other) const { return node_ == other.node_; }
+                bool operator!=(const iterator &other) const { return node_ != other.node_; }
+
+                pointer get_node() const { return node_; }
+
+            private:
+                pointer node_;
+                pointer nil_;
+            };
+
             // Constructor: initializes the tree with a sentinel NIL node
             rb_tree() : root_(nullptr)
             {
@@ -219,87 +300,6 @@ namespace zelix::stl
                     ChildrenAllocator::deallocate(node);
                 }
             }
-
-            class iterator
-            {
-            public:
-                iterator(pointer node, pointer nil) : node_(node), nil_(nil) {}
-
-                reference operator*() const
-                {
-                    return *node_;
-                }
-
-                pointer operator->() const
-                {
-                    return node_;
-                }
-
-                iterator &operator++()
-                { // inorder successor
-                    if (node_->right != nil_)
-                    {
-                        node_ = node_->right;
-                        while (node_->left != nil_)
-                            node_ = node_->left;
-                    }
-                    else
-                    {
-                        auto y = node_->parent;
-                        while (y != nil_ && node_ == y->right)
-                        {
-                            node_ = y;
-                            y = y->parent;
-                        }
-                        node_ = y;
-                    }
-                    return *this;
-                }
-
-                iterator operator++(int)
-                {
-                    iterator tmp = *this;
-                    ++(*this);
-                    return tmp;
-                }
-
-                iterator &operator--()
-                { // inorder predecessor
-                    if (node_->left != nil_)
-                    {
-                        node_ = node_->left;
-                        while (node_->right != nil_)
-                            node_ = node_->right;
-                    }
-                    else
-                    {
-                        auto y = node_->parent;
-                        while (y != nil_ && node_ == y->left)
-                        {
-                            node_ = y;
-                            y = y->parent;
-                        }
-                        node_ = y;
-                    }
-                    return *this;
-                }
-
-                iterator operator--(int)
-                {
-                    iterator tmp = *this;
-                    --(*this);
-                    return tmp;
-                }
-
-                bool operator==(const iterator &other) const { return node_ == other.node_; }
-                bool operator!=(const iterator &other) const { return node_ != other.node_; }
-
-                pointer get_node() const { return node_; }
-
-            private:
-                pointer node_;
-                pointer nil_;
-            };
 
             iterator begin()
             {
