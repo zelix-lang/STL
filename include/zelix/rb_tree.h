@@ -179,7 +179,15 @@ namespace zelix::stl
             rb_tree() : root_(nullptr)
             {
                 // create the sentinel NIL node
-                nil_ = ChildrenAllocator::allocate(T(), false, nullptr, nullptr, nullptr);
+                if constexpr (IsPair)
+                {
+                    nil_ = ChildrenAllocator::allocate(T(), Value(), false, nullptr, nullptr, nullptr);
+                }
+                else
+                {
+                    nil_ = ChildrenAllocator::allocate(T(), false, nullptr, nullptr, nullptr);
+                }
+
                 nil_->left = nil_->right = nil_->parent = nil_;
                 root_ = nil_;
             }
