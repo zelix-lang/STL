@@ -1,5 +1,10 @@
 # ZelixSTL
 
+> [!WARNING]
+> Zelix STL has been discontinued, as our efforts shift towards
+> the Zelix compiler. From now on, Zelix will use [Celery](https://github.com/rodrigoo-r/Celery).
+> Further changes to Zelix STL may not be made. Please update your code accordingly.
+
 ZelixSTL is a C++ library that implements optimized STL-like
 containers. It was designed to be used with C++20 and later, and it
 is the main library used in the Zelix Programming Language.
